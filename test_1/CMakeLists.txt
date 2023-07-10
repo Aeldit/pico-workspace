@@ -4,16 +4,14 @@ test_1.cpp
 
 target_sources(test_1
         PUBLIC
-                ${CMAKE_CURRENT_LIST_DIR}/$ENV{PICO_LIB_PATH}/dht22_Pico/dht22_pico.cpp
                 ${CMAKE_CURRENT_LIST_DIR}/$ENV{PICO_LIB_PATH}/SSD1306-Oled-Pico/SSD1306.cpp
                 ${CMAKE_CURRENT_LIST_DIR}/$ENV{PICO_LIB_PATH}/SSD1306-Oled-Pico/GFX.cpp
-                #${CMAKE_CURRENT_LIST_DIR}/screens.cpp
+                ${CMAKE_CURRENT_LIST_DIR}/screens.cpp
 )
 
 
 target_include_directories(test_1
         PUBLIC
-            ${CMAKE_CURRENT_LIST_DIR}/$ENV{PICO_LIB_PATH}/dht22_Pico/
             ${CMAKE_CURRENT_LIST_DIR}/$ENV{PICO_LIB_PATH}/SSD1306-Oled-Pico/
 )
 
