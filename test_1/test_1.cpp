@@ -91,16 +91,20 @@ const uint8_t LEDS_PINS[NB_LEDS] = {PIN_LIFE_LED};                          // L
 //=============================================================
 // VARIABLES
 // ============================================================
-bool buttons_states[NB_BUTTONS] = {false, false}; // Buttons order:
-bool leds_states[NB_LEDS] = {true};               // LEDs order:
+bool buttons_states[NB_BUTTONS] = {false, false};          // Buttons order:
+bool previous_buttons_states[NB_BUTTONS] = {false, false}; // Same as above
+bool leds_states[NB_LEDS] = {true};                        // LEDs order:
 
 uint8_t buttons_counters[NB_BUTTONS] = {0, 0}; // Counters used for buttons acquisition
 
-absolute_time_t timer_buttons[NB_BUTTONS]; // Timer for buttons acquisition
-
+absolute_time_t timer_button;     // Timer for buttons acquisition
 absolute_time_t timer_life_led;   // Timer for life led blinking
 absolute_time_t timer_lcd;        // Timer for the LCD to shutdown
 absolute_time_t timer_lcd_button; // Timer for the LCD button
+
+// Events
+//==============================
+bool event_button_updated = false;
 
 // Options
 //==============================
@@ -124,7 +128,7 @@ uint8_t selected_toggle = 1; // Selected option (OK or CANCEL)
  */
 void button_acquisition(uint8_t button);
 void buttons_acquisition();
-void on_button_press(uint8_t button);
+void on_button_release(uint8_t button);
 /**
  * @brief Changes the state of the LED (ON or OFF)
  *
@@ -164,25 +168,18 @@ int main()
 
     // LCD
     //==============================
-    i2c_init(i2c0, 400000);                         // Initialize I2C on i2c0 port with 400kHz
+    i2c_init(i2c1, 400000);                         // Initialize I2C on i2c0 port with 400kHz
     gpio_set_function(DISP_SDA_PIN, GPIO_FUNC_I2C); // Use DISP_SDA_PIN as I2C
     gpio_set_function(DISP_SCL_PIN, GPIO_FUNC_I2C); // Use DISP_SCL_PIN as I2C
     gpio_pull_up(DISP_SDA_PIN);                     // Pull up DISP_SDA_PIN
     gpio_pull_up(DISP_SCL_PIN);                     // Pull up DISP_SCL_PIN
-    gpio_put(PIN_LIFE_LED, 1);
-    // LCD Init
-    oled = new GFX(0x3C, size::W128xH64, i2c0); // Declare oled instance
-    oled->displayON(1);
+    //  LCD Init
+    oled = new GFX(0x3C, size::W128xH64, i2c1); // Declare oled instance
     oled->display(logo);
-    gpio_put(PIN_LIFE_LED, 1);
 
     // Timers
     //==============================
-    timer_life_led = timer_lcd = get_absolute_time();
-    for (uint8_t i = 0; i < NB_BUTTONS; i++)
-    {
-        timer_buttons[i] = timer_life_led;
-    }
+    timer_life_led = timer_button = timer_lcd = get_absolute_time();
 
     // Loop
     //=======================================================
@@ -209,13 +206,21 @@ int main()
         // Buttons
         buttons_acquisition();
 
-        if (buttons_states[BTN_LIFE])
+        if (event_button_updated)
         {
-            on_button_press(BTN_LIFE);
+            event_button_updated = false;
+
+#ifdef SERIAL_DEBUG
+            printf("Button pressed");
+#endif
+            if (buttons_states[BTN_LIFE])
+            {
+                on_button_release(BTN_LIFE);
+            }
         }
 
         // LCD
-        display_management();
+        // display_management();
     }
 }
 
@@ -224,9 +229,9 @@ int main()
 
 void button_acquisition(uint8_t button)
 {
-    if (absolute_time_diff_us(timer_buttons[button], get_absolute_time()) > C_TIME_BUTTON_FILTER)
+    if (absolute_time_diff_us(timer_button, get_absolute_time()) > C_TIME_BUTTON_FILTER)
     {
-        if (gpio_get(BUTTONS_PINS[button]) != 0)
+        if (gpio_get(BUTTONS_PINS[button]) == 0)
         {
             if (buttons_counters[button] < C_COEFF_BUTTON_FILTER)
             {
@@ -248,7 +253,13 @@ void button_acquisition(uint8_t button)
                 buttons_states[button] = false;
             }
         }
-        timer_buttons[button] = get_absolute_time();
+        timer_button = get_absolute_time();
+
+        if (previous_buttons_states[button] != buttons_states[button])
+        {
+            previous_buttons_states[button] = buttons_states[button];
+            event_button_updated = true;
+        }
     }
 }
 
@@ -260,7 +271,7 @@ void buttons_acquisition()
     }
 }
 
-void on_button_press(uint8_t button)
+void on_button_release(uint8_t button)
 {
     switch (button)
     {
@@ -268,9 +279,6 @@ void on_button_press(uint8_t button)
         led_driving(LIFE_LED);
         break;
     }
-#ifdef SERIAL_DEBUG
-    printf("Button pressed");
-#endif
 }
 
 // LEDs
