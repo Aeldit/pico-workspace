@@ -48,6 +48,31 @@ void screen_main_menu(GFX *display, uint8_t selector)
     display->display();
 }
 
+void screen_options(GFX *display, uint8_t option_selector)
+{
+    char Text[20];
+
+    display->clear();
+
+    // Screen header
+    sprintf(Text, "Options");
+    draw_centered_title(display, Text);
+
+    // Menu 1
+    sprintf(Text, "Life LED");
+    display->drawString(10, FIRST_LINE_Y, Text);
+
+    // Menu 2
+    sprintf(Text, "Screen Timeout");
+    display->drawString(10, FIRST_LINE_Y + 10, Text);
+
+    // Selected menu
+    sprintf(Text, ">");
+    display->drawString(0, FIRST_LINE_Y + (option_selector)*10, Text);
+
+    display->display();
+}
+
 void screen_temp_hum(GFX *display, float temperature, float humidity)
 {
     char Text[20];
@@ -110,7 +135,7 @@ void screen_option_toggle(GFX *display, char *text, bool option, uint8_t selecte
         display->drawString(0, FIRST_LINE_Y, Text);
     }
 
-    /*if (selected_option == 0)
+    if (selected_option == 0)
     {
         sprintf(Text, "OK");
         draw_text_reverse(display, 1, TEXT_OPTION_POS, Text);
@@ -123,7 +148,7 @@ void screen_option_toggle(GFX *display, char *text, bool option, uint8_t selecte
         display->drawString(1, TEXT_OPTION_POS, Text);
         sprintf(Text, "CANCEL");
         draw_text_reverse(display, 92, TEXT_OPTION_POS, Text);
-    }*/
+    }
 
     display->display();
 }

@@ -55,6 +55,7 @@
 #define NB_BUTTONS 5
 
 #define NB_MENUS 2
+#define NB_OPTIONS 2
 
 // PINs
 //==============================
@@ -79,6 +80,9 @@
 #define BTN_LCD_UP 2
 #define BTN_LCD_DOWN 3
 #define BTN_LCD_ENTER 4
+
+#define SCREEN_MAIN 0
+#define SCREEN_OPTIONS 1
 
 // Tempos
 //==============================
@@ -129,8 +133,11 @@ GFX *oled;
 bool is_lcd_on = true;
 bool is_display_update_needed = false;
 
-uint8_t selected_menu = NB_MENUS; // Selected menu
-uint8_t selected_toggle = 0;      // Selected option (OK or CANCEL)
+uint8_t selector;
+uint8_t nb_available_selectors;
+
+uint8_t previous_screen = 0;
+uint8_t current_screen = 0;
 
 //=============================================================
 // FUNCTIONS
@@ -197,6 +204,9 @@ int main()
     //  LCD Init
     oled = new GFX(0x3C, size::W128xH64, i2c1); // Declare oled instance
     oled->display(logo);
+
+    selector = NB_MENUS;
+    nb_available_selectors = NB_MENUS;
 
     // Timers
     //==============================
@@ -291,19 +301,33 @@ void on_button_release(uint8_t button)
         break;
 
     case BTN_LCD_DOWN:
-        if (selected_menu < NB_MENUS - 1)
+        if (selector < nb_available_selectors - 1)
         {
-            selected_menu++;
+            selector++;
         }
         else
         {
-            selected_menu = 0;
+            selector = 0;
+        }
+        is_display_update_needed = true;
+        timer_lcd = get_absolute_time();
+        break;
+
+    case BTN_LCD_UP:
+        if (selector > 0)
+        {
+            selector--;
+        }
+        else
+        {
+            selector = nb_available_selectors - 1;
         }
         is_display_update_needed = true;
         timer_lcd = get_absolute_time();
         break;
 
     case BTN_LCD_ENTER:
+        current_screen = selector;
         is_display_update_needed = true;
         timer_lcd = get_absolute_time();
         break;
@@ -346,7 +370,6 @@ void display_management()
 
     if (is_lcd_on)
     {
-        // Put display asleep after timeout
         if (absolute_time_diff_us(timer_lcd, get_absolute_time()) > C_TIME_LCD_SLEEP)
         {
             is_lcd_on = false;
@@ -357,7 +380,23 @@ void display_management()
         {
             if (is_display_update_needed)
             {
-                screen_main_menu(oled, selected_menu);
+                if (previous_screen != current_screen)
+                {
+                    switch (current_screen)
+                    {
+                    case SCREEN_MAIN:
+                        screen_main_menu(oled, selector);
+                        break;
+
+                    case SCREEN_OPTIONS:
+                        screen_options(oled, selector);
+                        break;
+
+                    default:
+                        break;
+                    }
+                    previous_screen = current_screen;
+                }
                 is_display_update_needed = false;
             }
         }
