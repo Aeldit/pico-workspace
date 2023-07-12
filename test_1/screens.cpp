@@ -48,7 +48,7 @@ void screen_main_menu(GFX *display, uint8_t selector)
     display->display();
 }
 
-void screen_options(GFX *display, uint8_t option_selector)
+void screen_options(GFX *display, uint8_t option_selector, char **options_names, bool options_values[], uint8_t arraySize)
 {
     char Text[20];
 
@@ -58,8 +58,21 @@ void screen_options(GFX *display, uint8_t option_selector)
     sprintf(Text, "Options");
     draw_centered_title(display, Text);
 
+    for (int i = 0; i < arraySize; i++)
+    {
+        if (options_values[i])
+        {
+            sprintf(Text, "- %s:", options_names[i][0]);
+        }
+        else
+        {
+            sprintf(Text, "- %s:", options_names[i][0]);
+        }
+        display->drawString(0, FIRST_LINE_Y + 10 * i, Text);
+    }
+
     // Menu 1
-    sprintf(Text, "Life LED");
+    /*sprintf(Text, "Life LED");
     display->drawString(10, FIRST_LINE_Y, Text);
 
     // Menu 2
@@ -67,8 +80,12 @@ void screen_options(GFX *display, uint8_t option_selector)
     display->drawString(10, FIRST_LINE_Y + 10, Text);
 
     // Selected menu
-    sprintf(Text, ">");
+    sprintf(Text, "-");
     display->drawString(0, FIRST_LINE_Y + (option_selector)*10, Text);
+
+    // Options values
+    sprintf(Text, "%c", C_CAR_CHECKED);
+    display->drawString(0, FIRST_LINE_Y, Text);*/
 
     display->display();
 }
@@ -164,7 +181,7 @@ void draw_title(GFX *display, char *text)
 void draw_centered_title(GFX *display, char *text)
 {
     display->drawFillRectangle(0, 0, 128, 10, colors::WHITE);
-    display->drawString(64 - sizeof(text) * 6, 1, text, colors::BLACK);
+    display->drawString(64 + sizeof(text) - 1 - sizeof(text) * 6, 1, text, colors::BLACK);
 }
 
 void draw_text_reverse(GFX *display, int x, int y, char *text)

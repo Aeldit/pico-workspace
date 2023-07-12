@@ -46,6 +46,11 @@
 
 #include "screens.h"
 
+#include <array>
+#include <string>
+using std::array;
+using std::string;
+
 //=============================================================
 // DEFINES
 // ============================================================
@@ -103,20 +108,26 @@ const uint8_t BUTTONS_PINS[NB_BUTTONS] = {
     PIN_BTN_LCD_CANCEL, PIN_BTN_LCD_UP, PIN_BTN_LCD_DOWN, PIN_BTN_LCD_ENTER}; // Buttons PINs
 const uint8_t LEDS_PINS[NB_LEDS] = {PIN_LIFE_LED};                            // LEDs PINs
 
+const uint8_t NB_AVAILABLE_SELECTORS[NB_MENUS] = {2, 2}; // Order : MAIN / OPTIONS
+
 //=============================================================
 // VARIABLES
 // ============================================================
-bool buttons_states[NB_BUTTONS] = {false, false, false, false, false};          // Buttons order:
-bool previous_buttons_states[NB_BUTTONS] = {false, false, false, false, false}; // Same as above
-bool leds_states[NB_LEDS] = {true};                                             // LEDs order:
+bool buttons_states[NB_BUTTONS]{false};          // Buttons order:
+bool previous_buttons_states[NB_BUTTONS]{false}; // Same as above
+bool leds_states[NB_LEDS]{true};                 // LEDs order:
 
-uint8_t buttons_counters[NB_BUTTONS] = {0, 0, 0, 0, 0}; // Counters used for buttons acquisition
+uint8_t buttons_counters[NB_BUTTONS]{0}; // Counters used for buttons acquisition
 
 uint8_t pressed_button = NB_BUTTONS;
 
-absolute_time_t timer_buttons[NB_BUTTONS] = {0, 0, 0, 0, 0}; // Timer for buttons acquisition
-absolute_time_t timer_life_led;                              // Timer for life led blinking
-absolute_time_t timer_lcd;                                   // Timer for the LCD to shutdown
+absolute_time_t timer_buttons[NB_BUTTONS]{0}; // Timer for buttons acquisition
+absolute_time_t timer_life_led;               // Timer for life led blinking
+absolute_time_t timer_lcd;                    // Timer for the LCD to shutdown
+
+char options_names[2] = {"Life LED", "Screen Timeout"};
+char *options_names_p = options_names;
+bool options_values[2] = {true, false};
 
 // Events
 //==============================
@@ -124,7 +135,13 @@ bool event_button_updated = false;
 
 // Options
 //==============================
+// Variables names are separated in 3 parts:
+//  - option_
+//  - category_
+//  - option_name
+//==============================
 bool option_debug_life_led = true;
+bool option_lcd_timeout = false;
 
 // LCD
 //==============================
@@ -132,12 +149,12 @@ GFX *oled;
 
 bool is_lcd_on = true;
 bool is_display_update_needed = false;
+bool is_screen_menu;
 
-uint8_t selector;
-uint8_t nb_available_selectors;
+uint8_t selector = 0;
 
-uint8_t previous_screen = 0;
-uint8_t current_screen = 0;
+uint8_t previous_screen = SCREEN_MAIN;
+uint8_t current_screen = SCREEN_MAIN;
 
 //=============================================================
 // FUNCTIONS
@@ -147,7 +164,7 @@ uint8_t current_screen = 0;
  */
 void button_acquisition(uint8_t button);
 void buttons_acquisition();
-void on_button_release(uint8_t button);
+bool on_button_release(uint8_t button);
 /**
  * @brief Changes the state of the LED (ON or OFF)
  *
@@ -205,9 +222,6 @@ int main()
     oled = new GFX(0x3C, size::W128xH64, i2c1); // Declare oled instance
     oled->display(logo);
 
-    selector = NB_MENUS;
-    nb_available_selectors = NB_MENUS;
-
     // Timers
     //==============================
     timer_life_led = timer_lcd = get_absolute_time();
@@ -225,10 +239,11 @@ int main()
 
         if (event_button_updated && pressed_button != NB_BUTTONS)
         {
-            on_button_release(pressed_button);
-
-            event_button_updated = false;
-            pressed_button = NB_BUTTONS;
+            if (on_button_release(pressed_button))
+            {
+                event_button_updated = false;
+                pressed_button = NB_BUTTONS;
+            }
         }
 
         // LCD
@@ -292,46 +307,18 @@ void buttons_acquisition()
     }
 }
 
-void on_button_release(uint8_t button)
+bool on_button_release(uint8_t button)
 {
+    bool found = false;
+
     switch (button)
     {
     case BTN_LIFE:
         led_driving(LED_LIFE);
-        break;
-
-    case BTN_LCD_DOWN:
-        if (selector < nb_available_selectors - 1)
-        {
-            selector++;
-        }
-        else
-        {
-            selector = 0;
-        }
-        is_display_update_needed = true;
-        timer_lcd = get_absolute_time();
-        break;
-
-    case BTN_LCD_UP:
-        if (selector > 0)
-        {
-            selector--;
-        }
-        else
-        {
-            selector = nb_available_selectors - 1;
-        }
-        is_display_update_needed = true;
-        timer_lcd = get_absolute_time();
-        break;
-
-    case BTN_LCD_ENTER:
-        current_screen = selector;
-        is_display_update_needed = true;
-        timer_lcd = get_absolute_time();
+        found = true;
         break;
     }
+    return found;
 }
 
 // LEDs
@@ -362,6 +349,57 @@ void leds_driving()
 //=======================================================
 void display_management()
 {
+    if (event_button_updated && pressed_button != NB_BUTTONS)
+    {
+        switch (pressed_button)
+        {
+        case BTN_LCD_DOWN:
+            if (selector < NB_AVAILABLE_SELECTORS[current_screen] - 1)
+            {
+                selector++;
+            }
+            else
+            {
+                selector = 0;
+            }
+            is_display_update_needed = true;
+            timer_lcd = get_absolute_time();
+            break;
+
+        case BTN_LCD_UP:
+            if (selector > 0)
+            {
+                selector--;
+            }
+            else
+            {
+                selector = NB_AVAILABLE_SELECTORS[current_screen] - 1;
+            }
+            is_display_update_needed = true;
+            timer_lcd = get_absolute_time();
+            break;
+
+        case BTN_LCD_ENTER:
+            if (current_screen == SCREEN_MAIN)
+            {
+                switch (selector)
+                {
+                case 0:
+                    current_screen = SCREEN_OPTIONS;
+                    break;
+
+                case 1:
+                    break;
+                }
+            }
+            is_display_update_needed = true;
+            timer_lcd = get_absolute_time();
+            break;
+        }
+        event_button_updated = false;
+        pressed_button = NB_BUTTONS;
+    }
+
     if (is_display_update_needed && !is_lcd_on)
     {
         is_lcd_on = true;
@@ -370,35 +408,37 @@ void display_management()
 
     if (is_lcd_on)
     {
-        if (absolute_time_diff_us(timer_lcd, get_absolute_time()) > C_TIME_LCD_SLEEP)
+        if (option_lcd_timeout)
         {
-            is_lcd_on = false;
-            oled->clear();
-            oled->display();
-        }
-        else
-        {
-            if (is_display_update_needed)
+            if (absolute_time_diff_us(timer_lcd, get_absolute_time()) > C_TIME_LCD_SLEEP)
             {
-                if (previous_screen != current_screen)
-                {
-                    switch (current_screen)
-                    {
-                    case SCREEN_MAIN:
-                        screen_main_menu(oled, selector);
-                        break;
-
-                    case SCREEN_OPTIONS:
-                        screen_options(oled, selector);
-                        break;
-
-                    default:
-                        break;
-                    }
-                    previous_screen = current_screen;
-                }
-                is_display_update_needed = false;
+                is_lcd_on = false;
+                oled->clear();
+                oled->display();
             }
+        }
+
+        if (is_display_update_needed)
+        {
+            if (previous_screen != current_screen)
+            {
+                previous_screen = current_screen;
+            }
+
+            switch (current_screen)
+            {
+            case SCREEN_MAIN:
+                screen_main_menu(oled, selector);
+                break;
+
+            case SCREEN_OPTIONS:
+                screen_options(oled, selector, &options_names_p, options_values, sizeof(options_names));
+                break;
+
+            default:
+                break;
+            }
+            is_display_update_needed = false;
         }
     }
 }
