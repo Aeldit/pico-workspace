@@ -10,18 +10,18 @@
                         GP     PIN         PIN     GP
                                    +-----+
                              +-----|     |-----+
-                        GP0  | 1   |     |  40 | VBUS
-                        GP1  | 2  #+-----+  39 | VSYS
+      BTN_LCD_CANCEL    GP0  | 1   |     |  40 | VBUS
+          BTN_LCD_UP    GP1  | 2  #+-----+  39 | VSYS
                         GND <| 3  GP25 LED  38 |>GND
-                        GP2  | 4            37 | 3V3_EN
-                        GP3  | 5            36 | 3V3_OUT
+        BTN_LCD_DOWN    GP2  | 4            37 | 3V3_EN
+       BTN_LCD_ENTER    GP3  | 5            36 | 3V3_OUT
                         GP4  | 6            35 | ADC_VREF
-                        GP5  | 7            34 | GP28    BTN_LCD_ENTER
+                        GP5  | 7            34 | GP28
                         GND <| 8            33 |>GND
-                        GP6  | 9            32 | GP27    BTN_LCD_DOWN
-                        GP7  | 10  +-----+  31 | GP26    BTN_LCD_UP
+                        GP6  | 9            32 | GP27
+                        GP7  | 10  +-----+  31 | GP26
                         GP8  | 11  |     |  30 | RUN
-                        GP9  | 12  |     |  29 | GP22    BTN_LCD_CANCEL
+                        GP9  | 12  |     |  29 | GP22
                         GND <| 13  +-----+  28 |>GND
                         GP10 | 14           27 | GP21
                         GP11 | 15           26 | GP20
@@ -54,20 +54,21 @@
 #define NB_LEDS 1
 #define NB_BUTTONS 5
 
+#define NB_MENUS 2
+
 // PINs
 //==============================
+#define PIN_BTN_LCD_CANCEL 0
+#define PIN_BTN_LCD_UP 1
+#define PIN_BTN_LCD_DOWN 2
+#define PIN_BTN_LCD_ENTER 3
+
 #define PIN_DISP_SDA 14
 #define PN_DISP_SCL 15
 
 #define PIN_BTN_LIFE 16
 
-#define PIN_BTN_LCD_CANCEL 22
-
 #define PIN_LIFE_LED 25
-
-#define PIN_BTN_LCD_UP 26
-#define PIN_BTN_LCD_DOWN 27
-#define PIN_BTN_LCD_ENTER 28
 
 // Indexes
 //==============================
@@ -81,10 +82,10 @@
 
 // Tempos
 //==============================
-#define C_TIME_BUTTON_FILTER 30000     // 30ms : button filtering time
-#define C_TIME_LIFE_LED_FILTER 1000000 // 1s : life LED filtering time
+#define C_TIME_BUTTON_FILTER 30 * 1000     // 30ms : button filtering time
+#define C_TIME_LIFE_LED_FILTER 1000 * 1000 // 1s : life LED filtering time
 
-#define C_TIME_LCD_SLEEP 4000000         // 10s : duration before putting display asleep
+#define C_TIME_LCD_SLEEP 5 * 1000 * 1000 // 5s : duration before putting display asleep
 #define C_TIME_LCD_BUTTONS_FILTER 250000 // 250ms : LEDs filtering time
 #define C_TIME_LCD_SELECTOR 300000       // 300ms : duration before putting display asleep
 
@@ -103,15 +104,15 @@ const uint8_t LEDS_PINS[NB_LEDS] = {PIN_LIFE_LED};                            //
 // ============================================================
 bool buttons_states[NB_BUTTONS] = {false, false, false, false, false};          // Buttons order:
 bool previous_buttons_states[NB_BUTTONS] = {false, false, false, false, false}; // Same as above
-bool leds_states[NB_LEDS]{true};                                                // LEDs order:
+bool leds_states[NB_LEDS] = {true};                                             // LEDs order:
 
 uint8_t buttons_counters[NB_BUTTONS] = {0, 0, 0, 0, 0}; // Counters used for buttons acquisition
 
 uint8_t pressed_button = NB_BUTTONS;
 
-absolute_time_t timer_button;   // Timer for buttons acquisition
-absolute_time_t timer_life_led; // Timer for life led blinking
-absolute_time_t timer_lcd;      // Timer for the LCD to shutdown
+absolute_time_t timer_buttons[NB_BUTTONS] = {0, 0, 0, 0, 0}; // Timer for buttons acquisition
+absolute_time_t timer_life_led;                              // Timer for life led blinking
+absolute_time_t timer_lcd;                                   // Timer for the LCD to shutdown
 
 // Events
 //==============================
@@ -128,8 +129,8 @@ GFX *oled;
 bool is_lcd_on = true;
 bool is_display_update_needed = false;
 
-uint8_t selected_menu = 0;   // Selected menu
-uint8_t selected_toggle = 1; // Selected option (OK or CANCEL)
+uint8_t selected_menu = NB_MENUS; // Selected menu
+uint8_t selected_toggle = 0;      // Selected option (OK or CANCEL)
 
 //=============================================================
 // FUNCTIONS
@@ -199,7 +200,11 @@ int main()
 
     // Timers
     //==============================
-    timer_life_led = timer_button = timer_lcd = get_absolute_time();
+    timer_life_led = timer_lcd = get_absolute_time();
+    for (int i = 0; i < NB_BUTTONS; i++)
+    {
+        timer_buttons[i] = timer_life_led;
+    }
 
     // Loop
     //=======================================================
@@ -211,6 +216,9 @@ int main()
         if (event_button_updated && pressed_button != NB_BUTTONS)
         {
             on_button_release(pressed_button);
+
+            event_button_updated = false;
+            pressed_button = NB_BUTTONS;
         }
 
         // LCD
@@ -223,7 +231,7 @@ int main()
 
 void button_acquisition(uint8_t button)
 {
-    if (absolute_time_diff_us(timer_button, get_absolute_time()) > C_TIME_BUTTON_FILTER)
+    if (absolute_time_diff_us(timer_buttons[button], get_absolute_time()) > C_TIME_BUTTON_FILTER)
     {
         if (gpio_get(BUTTONS_PINS[button]) == 0)
         {
@@ -247,7 +255,7 @@ void button_acquisition(uint8_t button)
                 buttons_states[button] = false;
             }
         }
-        timer_button = get_absolute_time();
+        timer_buttons[button] = get_absolute_time();
 
         if (previous_buttons_states[button] != buttons_states[button])
         {
@@ -282,14 +290,24 @@ void on_button_release(uint8_t button)
         led_driving(LED_LIFE);
         break;
 
+    case BTN_LCD_DOWN:
+        if (selected_menu < NB_MENUS - 1)
+        {
+            selected_menu++;
+        }
+        else
+        {
+            selected_menu = 0;
+        }
+        is_display_update_needed = true;
+        timer_lcd = get_absolute_time();
+        break;
+
     case BTN_LCD_ENTER:
         is_display_update_needed = true;
         timer_lcd = get_absolute_time();
         break;
     }
-
-    event_button_updated = false;
-    pressed_button = NB_BUTTONS;
 }
 
 // LEDs
@@ -339,9 +357,7 @@ void display_management()
         {
             if (is_display_update_needed)
             {
-                char option[15] = "Screen Test";
-                char Text[1];
-                screen_option_toggle(oled, option, option_debug_life_led, selected_toggle);
+                screen_main_menu(oled, selected_menu);
                 is_display_update_needed = false;
             }
         }

@@ -18,30 +18,32 @@
 // FUNCTIONS
 // ============================================================
 void draw_title(GFX *display, char *text);
+void draw_centered_title(GFX *display, char *text);
 void draw_text_reverse(GFX *display, int x, int y, char *text);
 
 // Screens
 //=======================================================
-void screen_main_menu(GFX *display, uint8_t select)
+void screen_main_menu(GFX *display, uint8_t selector)
 {
     char Text[20];
 
     display->clear();
-    // Menu
+
+    // Screen header
     sprintf(Text, "Main Menu");
-    draw_title(display, Text);
+    draw_centered_title(display, Text);
 
     // Menu 1
-    sprintf(Text, "Temperature");
+    sprintf(Text, "Options");
     display->drawString(10, FIRST_LINE_Y, Text);
 
     // Menu 2
     sprintf(Text, "Debug");
-    display->drawString(10, FIRST_LINE_Y + 10, Text);
+    display->drawString(10, FIRST_LINE_Y + 10, "Debug");
 
     // Selected menu
     sprintf(Text, ">");
-    display->drawString(0, FIRST_LINE_Y + (select)*10, Text);
+    display->drawString(0, FIRST_LINE_Y + (selector)*10, Text);
 
     display->display();
 }
@@ -66,7 +68,7 @@ void screen_temp_hum(GFX *display, float temperature, float humidity)
     display->display();
 }
 
-void screen_debug(GFX *display, uint8_t select)
+void screen_debug(GFX *display, uint8_t selector)
 {
     char Text[20];
 
@@ -81,7 +83,7 @@ void screen_debug(GFX *display, uint8_t select)
 
     // Selected menu
     sprintf(Text, ">");
-    display->drawString(0, FIRST_LINE_Y + (select)*10, Text);
+    display->drawString(0, FIRST_LINE_Y + (selector)*10, Text);
 
     display->display();
 }
@@ -132,6 +134,12 @@ void draw_title(GFX *display, char *text)
 {
     display->drawFillRectangle(0, 0, 128, 10, colors::WHITE);
     display->drawString(1, 1, text, colors::BLACK);
+}
+
+void draw_centered_title(GFX *display, char *text)
+{
+    display->drawFillRectangle(0, 0, 128, 10, colors::WHITE);
+    display->drawString(64 - sizeof(text) * 6, 1, text, colors::BLACK);
 }
 
 void draw_text_reverse(GFX *display, int x, int y, char *text)
