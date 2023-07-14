@@ -95,8 +95,9 @@ using std::string;
 
 // Tempos
 //==============================
-#define C_TIME_BUTTON_FILTER 30 * 1000     // 30ms : button filtering time
-#define C_TIME_LIFE_LED_FILTER 3000 * 1000 // 3s : life LED filtering time
+#define C_TIME_BUTTON_FILTER 30 * 1000  // 30ms : button filtering time
+#define C_TIME_LIFE_LED_OFF 3000 * 1000 // 5s : life LED OFF time
+#define C_TIME_LIFE_LED_ON 100 * 1000   // 3s : life LED ON time
 
 #define C_TIME_LCD_SLEEP 5 * 1000 * 1000 // 5s : duration before putting display asleep
 #define C_TIME_LCD_BUTTONS_FILTER 250000 // 250ms : LEDs filtering time
@@ -236,18 +237,29 @@ int main()
 
         if (options.values[OPTION_LIFE_LED])
         {
-            if (absolute_time_diff_us(timer_life_led, get_absolute_time()) > C_TIME_LIFE_LED_FILTER)
+            if (leds_states[LED_LIFE])
             {
-                led_driving(LED_LIFE);
-                timer_life_led = get_absolute_time();
+                if (absolute_time_diff_us(timer_life_led, get_absolute_time()) > C_TIME_LIFE_LED_ON)
+                {
+                    led_driving(LED_LIFE);
+                    timer_life_led = get_absolute_time();
+                }
+            }
+            else
+            {
+                if (absolute_time_diff_us(timer_life_led, get_absolute_time()) > C_TIME_LIFE_LED_OFF)
+                {
+                    led_driving(LED_LIFE);
+                    timer_life_led = get_absolute_time();
+                }
             }
         }
         else
         {
+            // Turns the LED OFF if the OPTION_LIFE_LED is false
             if (leds_states[LED_LIFE])
             {
-                leds_states[LED_LIFE] = false;
-                gpio_put(LEDS_PINS[LED_LIFE], 0);
+                led_driving(LED_LIFE);
             }
         }
 
@@ -341,11 +353,11 @@ void led_driving(uint8_t ledNumber)
 {
     if (leds_states[ledNumber])
     {
-        gpio_put(LEDS_PINS[ledNumber], 1); // Turns the LED ON
+        gpio_put(LEDS_PINS[ledNumber], 0); // Turns the LED OFF
     }
     else
     {
-        gpio_put(LEDS_PINS[ledNumber], 0); // Turns the LED OFF
+        gpio_put(LEDS_PINS[ledNumber], 1); // Turns the LED ON
     }
     leds_states[ledNumber] = !leds_states[ledNumber];
 }
