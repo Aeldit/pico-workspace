@@ -18,6 +18,7 @@
 // FUNCTIONS
 // ============================================================
 void draw_title(GFX *display, char *text);
+void draw_menu_centered_title(GFX *display, char *text);
 void draw_centered_title(GFX *display, char *text, bool back_button_selected);
 void draw_text_reverse(GFX *display, int x, int y, char *text);
 
@@ -31,7 +32,7 @@ void screen_main_menu(GFX *display, uint8_t selector)
 
     // Screen header
     sprintf(Text, "Main Menu");
-    draw_centered_title(display, Text, false);
+    draw_menu_centered_title(display, Text);
 
     // Menu 1
     sprintf(Text, "Options");
@@ -48,9 +49,9 @@ void screen_main_menu(GFX *display, uint8_t selector)
     display->display();
 }
 
-void screen_options(GFX *display, uint8_t selector, t_options *options, uint8_t arraySize)
+void screen_options(GFX *display, int selector, t_options *options, uint8_t arraySize)
 {
-    char Text[20];
+    char Text[19];
 
     display->clear();
 
@@ -66,6 +67,7 @@ void screen_options(GFX *display, uint8_t selector, t_options *options, uint8_t 
         draw_centered_title(display, Text, false);
     }
 
+    // Screen body
     for (int i = 0; i < arraySize; i++)
     {
         sprintf(Text, "%s", options->options_names[i]);
@@ -79,25 +81,17 @@ void screen_options(GFX *display, uint8_t selector, t_options *options, uint8_t 
         {
             sprintf(Text, "%c", C_CAR_UNCHECKED);
         }
-        display->drawString(122, FIRST_LINE_Y + 10 * i, Text);
+
+        if (selector == i)
+        {
+            display->drawFillRectangle(121, FIRST_LINE_Y + 10 * i, 7, 10, colors::WHITE);
+            display->drawString(122, FIRST_LINE_Y + 10 * i, Text, colors::BLACK);
+        }
+        else
+        {
+            display->drawString(122, FIRST_LINE_Y + 10 * i, Text, colors::WHITE);
+        }
     }
-
-    // Menu 1
-    /*sprintf(Text, "Life LED");
-    display->drawString(10, FIRST_LINE_Y, Text);
-
-    // Menu 2
-    sprintf(Text, "Screen Timeout");
-    display->drawString(10, FIRST_LINE_Y + 10, Text);
-
-    // Selected menu
-    sprintf(Text, "-");
-    display->drawString(0, FIRST_LINE_Y + (selector)*10, Text);
-
-    // Options values
-    sprintf(Text, "%c", C_CAR_CHECKED);
-    display->drawString(0, FIRST_LINE_Y, Text);*/
-
     display->display();
 }
 
@@ -187,6 +181,12 @@ void draw_title(GFX *display, char *text)
 {
     display->drawFillRectangle(0, 0, 128, 10, colors::WHITE);
     display->drawString(1, 1, text, colors::BLACK);
+}
+
+void draw_menu_centered_title(GFX *display, char *text)
+{
+    display->drawFillRectangle(0, 0, 128, 10, colors::WHITE);
+    display->drawString(64 - sizeof(text) * 6, 1, text, colors::BLACK);
 }
 
 void draw_centered_title(GFX *display, char *text, bool back_button_selected)

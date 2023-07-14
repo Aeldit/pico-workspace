@@ -90,10 +90,13 @@ using std::string;
 #define SCREEN_MAIN 0
 #define SCREEN_OPTIONS 1
 
+#define OPTION_LIFE_LED 0
+#define OPTION_SCREEN_TIMEOUT 1
+
 // Tempos
 //==============================
 #define C_TIME_BUTTON_FILTER 30 * 1000     // 30ms : button filtering time
-#define C_TIME_LIFE_LED_FILTER 1000 * 1000 // 1s : life LED filtering time
+#define C_TIME_LIFE_LED_FILTER 3000 * 1000 // 3s : life LED filtering time
 
 #define C_TIME_LCD_SLEEP 5 * 1000 * 1000 // 5s : duration before putting display asleep
 #define C_TIME_LCD_BUTTONS_FILTER 250000 // 250ms : LEDs filtering time
@@ -116,7 +119,7 @@ const uint8_t NB_AVAILABLE_SELECTORS[NB_MENUS] = {2, 2}; // Order : MAIN / OPTIO
 // ============================================================
 bool buttons_states[NB_BUTTONS]{false};          // Buttons order:
 bool previous_buttons_states[NB_BUTTONS]{false}; // Same as above
-bool leds_states[NB_LEDS]{true};                 // LEDs order:
+bool leds_states[NB_LEDS]{false};                // LEDs order:
 
 uint8_t buttons_counters[NB_BUTTONS]{0}; // Counters used for buttons acquisition
 
@@ -126,25 +129,13 @@ absolute_time_t timer_buttons[NB_BUTTONS]{0}; // Timer for buttons acquisition
 absolute_time_t timer_life_led;               // Timer for life led blinking
 absolute_time_t timer_lcd;                    // Timer for the LCD to shutdown
 
-t_options options;
-
-/*sprintf(options_names[0], "Life LED");
-sprintf(options_names[1], "Screen Timeout");*/
-// bool options_values[2] = {true, false};
-
 // Events
 //==============================
 bool event_button_updated = false;
 
 // Options
 //==============================
-// Variables names are separated in 3 parts:
-//  - option_
-//  - category_
-//  - option_name
-//==============================
-bool option_debug_life_led = true;
-bool option_lcd_timeout = false;
+t_options options;
 
 // LCD
 //==============================
@@ -154,10 +145,10 @@ bool is_lcd_on = true;
 bool is_display_update_needed = false;
 bool is_screen_menu;
 
-uint8_t selector = 0; // > 0 : list selection | -1 : previous page button in header
+int selector = 0; // > 0 : list selection | -1 : previous page button in header
 
-uint8_t previous_screen = SCREEN_OPTIONS;
-uint8_t current_screen = SCREEN_OPTIONS;
+uint8_t previous_screen = SCREEN_MAIN;
+uint8_t current_screen = SCREEN_MAIN;
 
 //=============================================================
 // FUNCTIONS
@@ -222,7 +213,7 @@ int main()
     gpio_set_function(PN_DISP_SCL, GPIO_FUNC_I2C);  // Use PN_DISP_SCL as I2C
     gpio_pull_up(PIN_DISP_SDA);                     // Pull up PIN_DISP_SDA
     gpio_pull_up(PN_DISP_SCL);                      // Pull up PN_DISP_SCL
-    //  LCD Init
+
     oled = new GFX(0x3C, size::W128xH64, i2c1); // Declare oled instance
     oled->display(logo);
 
@@ -243,14 +234,22 @@ int main()
         // Buttons
         buttons_acquisition();
 
-        /*if (event_button_updated && pressed_button != NB_BUTTONS)
+        if (options.values[OPTION_LIFE_LED])
         {
-            if (on_button_release(pressed_button))
+            if (absolute_time_diff_us(timer_life_led, get_absolute_time()) > C_TIME_LIFE_LED_FILTER)
             {
-                event_button_updated = false;
-                pressed_button = NB_BUTTONS;
+                led_driving(LED_LIFE);
+                timer_life_led = get_absolute_time();
             }
-        }*/
+        }
+        else
+        {
+            if (leds_states[LED_LIFE])
+            {
+                leds_states[LED_LIFE] = false;
+                gpio_put(LEDS_PINS[LED_LIFE], 0);
+            }
+        }
 
         // LCD
         display_management();
@@ -368,8 +367,10 @@ void display_management()
         switch (pressed_button)
         {
         case BTN_LCD_CANCEL:
-            selector = -1;
-            led_driving(LED_LIFE);
+            if (current_screen != SCREEN_MAIN)
+            {
+                selector = -1;
+            }
             reset_button_event();
             break;
 
@@ -400,14 +401,21 @@ void display_management()
         case BTN_LCD_ENTER:
             if (current_screen == SCREEN_MAIN)
             {
-                switch (selector)
+                if (selector >= 0 && selector < NB_MENUS)
                 {
-                case 0:
-                    current_screen = SCREEN_OPTIONS;
-                    break;
-
-                case 1:
-                    break;
+                    current_screen++;
+                }
+            }
+            else if (current_screen == SCREEN_OPTIONS)
+            {
+                if (selector >= 0 && selector < NB_OPTIONS)
+                {
+                    options.values[selector] = !options.values[selector];
+                }
+                else if (selector == -1)
+                {
+                    current_screen = previous_screen;
+                    selector = 0;
                 }
             }
             reset_button_event();
@@ -423,7 +431,7 @@ void display_management()
 
     if (is_lcd_on)
     {
-        if (option_lcd_timeout)
+        if (options.values[OPTION_SCREEN_TIMEOUT])
         {
             if (absolute_time_diff_us(timer_lcd, get_absolute_time()) > C_TIME_LCD_SLEEP)
             {
