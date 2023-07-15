@@ -1,6 +1,6 @@
 /**
- * @file screens.cpp
- * @author Raphoulfifou (raphael.roger.92@gmail.com)
+ * @author Aeldit
+ * @link https://github.com/Aeldit
  */
 
 //=============================================================
@@ -17,9 +17,22 @@
 //=============================================================
 // FUNCTIONS
 // ============================================================
-void draw_title(GFX *display, char *text);
+/**
+ * @brief Draws a white rectangle ate the top of the screen and write on it the text (centered)
+ *
+ * @param display The GFX instance
+ * @param text The screen header title
+ */
 void draw_menu_centered_title(GFX *display, char *text);
-void draw_centered_title(GFX *display, char *text, bool back_button_selected);
+/**
+ * @brief Draws a white rectangle ate the top of the screen and write on it the text (centered).
+ *        It also draws the back button
+ *
+ * @param display The GFX instance
+ * @param text The screen header title
+ * @param back_button_selected Whether the "back" button is selected
+ */
+void draw_centered_title(GFX *display, char *text, size_t length, bool back_button_selected);
 void draw_text_reverse(GFX *display, int x, int y, char *text);
 
 // Screens
@@ -34,13 +47,14 @@ void screen_main_menu(GFX *display, uint8_t selector)
     sprintf(Text, "Main Menu");
     draw_menu_centered_title(display, Text);
 
-    // Menu 1
     sprintf(Text, "Options");
     display->drawString(10, FIRST_LINE_Y, Text);
 
-    // Menu 2
+    sprintf(Text, "Temperature");
+    display->drawString(10, FIRST_LINE_Y + 10, Text);
+
     sprintf(Text, "Debug");
-    display->drawString(10, FIRST_LINE_Y + 10, "Debug");
+    display->drawString(10, FIRST_LINE_Y + 20, Text);
 
     // Selected menu
     sprintf(Text, ">");
@@ -60,11 +74,11 @@ void screen_options(GFX *display, int selector, t_options *options, uint8_t arra
 
     if (selector == -1)
     {
-        draw_centered_title(display, Text, true);
+        draw_centered_title(display, Text, sizeof(Text), true);
     }
     else
     {
-        draw_centered_title(display, Text, false);
+        draw_centered_title(display, Text, sizeof(Text), false);
     }
 
     // Screen body
@@ -73,6 +87,7 @@ void screen_options(GFX *display, int selector, t_options *options, uint8_t arra
         sprintf(Text, "%s", options->options_names[i]);
         display->drawString(0, FIRST_LINE_Y + 10 * i, Text);
 
+        // Display a ✓ or a X depending on the value of the option
         if (options->values[i])
         {
             sprintf(Text, "%c", C_CAR_CHECKED);
@@ -95,93 +110,40 @@ void screen_options(GFX *display, int selector, t_options *options, uint8_t arra
     display->display();
 }
 
-void screen_temp_hum(GFX *display, float temperature, float humidity)
+void screen_temp_hum(GFX *display, float temperature, float humidity, bool reload_only_values)
 {
     char Text[20];
 
-    display->clear();
-    // Menu
-    sprintf(Text, "Temperature");
-    draw_title(display, Text);
+    if (reload_only_values)
+    {
+        display->clear();
+
+        // Screen header
+        sprintf(Text, "Temperature");
+        draw_centered_title(display, Text, 11, true);
+
+        // Temperature
+        sprintf(Text, "Temperature :", temperature);
+        display->drawString(0, FIRST_LINE_Y, Text);
+
+        // Humidity
+        sprintf(Text, "Humidity :", humidity);
+        display->drawString(0, FIRST_LINE_Y + 10, Text);
+    }
 
     // Temperature
-    sprintf(Text, "Temperature : %.1fC", temperature);
-    display->drawString(0, FIRST_LINE_Y, Text);
+    sprintf(Text, "%.1fC", temperature);
+    display->drawString(98, FIRST_LINE_Y, Text);
 
     // Humidity
-    sprintf(Text, "Humidity : %.1f%%", humidity);
-    display->drawString(0, FIRST_LINE_Y + 10, Text);
-
-    display->display();
-}
-
-void screen_debug(GFX *display, uint8_t selector)
-{
-    char Text[20];
-
-    display->clear();
-    // Menu
-    sprintf(Text, "DEBUG");
-    draw_title(display, Text);
-
-    // Life LED
-    sprintf(Text, "Life LED");
-    display->drawString(10, FIRST_LINE_Y, Text);
-
-    // Selected menu
-    sprintf(Text, ">");
-    display->drawString(0, FIRST_LINE_Y + (selector)*10, Text);
-
-    display->display();
-}
-
-void screen_option_toggle(GFX *display, char *text, bool option, uint8_t selected_option)
-{
-    char Text[20];
-
-    display->clear();
-
-    // Title
-    sprintf(Text, "Toogle:%s", text);
-    draw_title(display, Text);
-
-    // Current state of the option
-    if (option)
-    {
-        sprintf(Text, "Current state : %c", C_CAR_CHECKED);
-        display->drawString(0, FIRST_LINE_Y, Text);
-    }
-    else
-    {
-        sprintf(Text, "Current state : %c", C_CAR_UNCHECKED);
-        display->drawString(0, FIRST_LINE_Y, Text);
-    }
-
-    if (selected_option == 0)
-    {
-        sprintf(Text, "OK");
-        draw_text_reverse(display, 1, TEXT_OPTION_POS, Text);
-        sprintf(Text, "CANCEL");
-        display->drawString(92, TEXT_OPTION_POS, Text);
-    }
-    else if (selected_option == 1)
-    {
-        sprintf(Text, "OK");
-        display->drawString(1, TEXT_OPTION_POS, Text);
-        sprintf(Text, "CANCEL");
-        draw_text_reverse(display, 92, TEXT_OPTION_POS, Text);
-    }
+    sprintf(Text, "%.1f%%", humidity);
+    display->drawString(98, FIRST_LINE_Y + 10, Text);
 
     display->display();
 }
 
 // Utils
 //=======================================================
-void draw_title(GFX *display, char *text)
-{
-    display->drawFillRectangle(0, 0, 128, 10, colors::WHITE);
-    display->drawString(1, 1, text, colors::BLACK);
-}
 
 void draw_menu_centered_title(GFX *display, char *text)
 {
@@ -189,7 +151,7 @@ void draw_menu_centered_title(GFX *display, char *text)
     display->drawString(64 - sizeof(text) * 6, 1, text, colors::BLACK);
 }
 
-void draw_centered_title(GFX *display, char *text, bool back_button_selected)
+void draw_centered_title(GFX *display, char *text, size_t length, bool back_button_selected)
 {
     display->drawFillRectangle(0, 0, 128, 10, colors::WHITE);
 
@@ -202,7 +164,15 @@ void draw_centered_title(GFX *display, char *text, bool back_button_selected)
     {
         display->drawString(0, 1, "<", colors::BLACK);
     }
-    display->drawString(64 + sizeof(text) - 1 - sizeof(text) * 6, 1, text, colors::BLACK);
+
+    if (length % 2 == 0)
+    {
+        display->drawString(64 - length * 5 - length + 1, 1, text, colors::BLACK);
+    }
+    else
+    {
+        display->drawString(58 - length / 2, 1, text, colors::BLACK);
+    }
 }
 
 void draw_text_reverse(GFX *display, int x, int y, char *text)

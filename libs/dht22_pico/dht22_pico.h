@@ -7,12 +7,13 @@
 
 #include "pico/stdlib.h"
 
-#define DHT_OK              0
-#define DHT_ERR_CHECKSUM    1
-#define DHT_ERR_NAN         2
-#define DHT_NO_SENSOR       3
+#define DHT_OK 0
+#define DHT_ERR_CHECKSUM 1
+#define DHT_ERR_NAN 2
+#define DHT_NO_SENSOR 3
 
-typedef struct {
+typedef struct
+{
     uint pin;
     float humidity;
     float temp_celsius;
