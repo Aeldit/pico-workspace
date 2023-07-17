@@ -18,7 +18,7 @@ typedef char t_options_names[2][18];
 
 typedef struct
 {
-    t_options_names options_names;
+    t_options_names names;
     bool values[2];
 } t_options;
 

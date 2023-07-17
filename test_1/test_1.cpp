@@ -142,12 +142,11 @@ GFX *oled;
 
 bool is_lcd_on = true;
 bool is_display_update_needed = false;
-bool is_screen_menu;
 
 int selector = 0; // > 0 : list selection | -1 : previous page button in header
 
-uint8_t previous_screen = SCREEN_TEMPERATURE;
-uint8_t current_screen = SCREEN_TEMPERATURE;
+uint8_t previous_screen = SCREEN_OPTIONS;
+uint8_t current_screen = SCREEN_OPTIONS;
 
 // DHT
 //==============================
@@ -230,7 +229,7 @@ void init()
 
     // Options
     //==============================
-    options = (t_options){.options_names = {"Life LED", "Screen Timeout"}, .values = {false, false}};
+    options = (t_options){.names = {"Life LED", "Screen Timeout"}, .values = {false, false}};
 }
 
 int main()
@@ -399,7 +398,8 @@ void display_management()
                 case SCREEN_MAIN:
                     if (selector >= 0 && selector < NB_SCREENS)
                     {
-                        current_screen++;
+                        current_screen = selector;
+                        selector = 0;
                     }
                     break;
 
