@@ -15,3 +15,8 @@
 void screen_main_menu(GFX *display, uint8_t selector);
 void screen_options(GFX *display, int selector, t_options *options, uint8_t arraySize);
 void screen_temp_hum(GFX *display, t_temperature temperature, t_humidity humidity, bool reload_only_values);
+
+/**
+ * Displays an error message on the LCD
+ */
+void draw_alert_header(GFX *display, char *text, uint8_t length);

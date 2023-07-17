@@ -36,6 +36,7 @@ void screen_main_menu(GFX *display, uint8_t selector)
 
     // Screen header
     sprintf(Text, "Main Menu");
+    // sprintf(Text, "DHT not initialized");
     draw_centered_header(display, Text, 9);
 
     sprintf(Text, "Options");
@@ -91,7 +92,7 @@ void screen_options(GFX *display, int selector, t_options *options, uint8_t arra
 
 void screen_temp_hum(GFX *display, t_temperature temperature, t_humidity humidity, bool reload_only_values)
 {
-    char Text[20];
+    char Text[19];
 
     if (!reload_only_values)
     {
@@ -145,4 +146,33 @@ void draw_text_reverse(GFX *display, int x, int y, char *text)
         display->drawFillRectangle(x - 1, y - 1, strlen(text) * (font_8x5[1] + 1) + 1, 10, colors::WHITE);
         display->drawString(x, y, text, colors::BLACK);
     }
+}
+
+void draw_alert_header(GFX *display, char *text, uint8_t length)
+{
+    display->clear();
+    display->drawFillRectangle(0, 0, 128, 128, colors::WHITE);
+
+    if (length % 2 == 0)
+    {
+        display->drawString(64 - (length / 2) * 5 - length + 3, 32 - 3, text, colors::BLACK);
+    }
+    else
+    {
+        display->drawString(64 - (length / 2) * 5 - length + 6, 32 - 3, text, colors::BLACK);
+    }
+
+    display->display();
+
+    sleep_ms(300);
+    display->invertColors(1);
+    sleep_ms(300);
+    display->invertColors(0);
+    sleep_ms(300);
+    display->invertColors(1);
+    sleep_ms(300);
+    display->invertColors(0);
+    sleep_ms(300);
+
+    display->clear();
 }

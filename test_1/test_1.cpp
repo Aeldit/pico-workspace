@@ -372,7 +372,7 @@ void display_management()
         case BTN_LCD_CANCEL:
             if (current_screen == SCREEN_OPTIONS || current_screen == SCREEN_TEMPERATURE)
             {
-                current_screen = SCREEN_MAIN;
+                previous_screen = current_screen = SCREEN_MAIN;
                 selector = 0;
             }
             reset_button_event();
@@ -412,6 +412,14 @@ void display_management()
                     {
                         current_screen = selector + 1;
                         selector = 0;
+
+                        if (current_screen == SCREEN_TEMPERATURE && !options.values[OPTION_USE_DHT])
+                        {
+                            char Text[19];
+                            sprintf(Text, "DHT not initialized");
+                            draw_alert_header(oled, Text, 19);
+                            current_screen--;
+                        }
                     }
                     break;
 
@@ -462,19 +470,13 @@ void display_management()
                 break;
 
             case SCREEN_TEMPERATURE:
-                if (options.values[OPTION_USE_DHT])
+                if (previous_screen == current_screen)
                 {
-                    if (previous_screen == current_screen)
-                    {
-                        screen_temp_hum(oled, dht.temp_celsius, dht.humidity, true);
-                    }
-                    else
-                    {
-                        screen_temp_hum(oled, dht.temp_celsius, dht.humidity, false);
-                    }
+                    screen_temp_hum(oled, dht.temp_celsius, dht.humidity, true);
                 }
                 else
                 {
+                    screen_temp_hum(oled, dht.temp_celsius, dht.humidity, false);
                 }
             }
             is_display_update_needed = false;
