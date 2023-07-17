@@ -13,8 +13,8 @@ target_sources(test_1
 
 target_include_directories(test_1
         PUBLIC
-            ${CMAKE_CURRENT_LIST_DIR}/$ENV{PICO_LIB_PATH}/SSD1306-Oled-Pico/
-            ${CMAKE_CURRENT_LIST_DIR}/$ENV{PICO_LIB_PATH}/dht22_pico/
+                ${CMAKE_CURRENT_LIST_DIR}/$ENV{PICO_LIB_PATH}/SSD1306-Oled-Pico/
+                ${CMAKE_CURRENT_LIST_DIR}/$ENV{PICO_LIB_PATH}/dht22_pico/
 )
 
 # pull in common dependencies

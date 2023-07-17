@@ -36,14 +36,14 @@
 //=============================================================
 // INCLUDES
 // ============================================================
+#include <dht22_pico.h>
 #include <stdio.h>
-#include "pico/stdlib.h"
-#include "hardware/i2c.h"
 
 #include <GFX.hpp>
 #include <logo.hpp>
-#include <dht22_pico.h>
 
+#include "hardware/i2c.h"
+#include "pico/stdlib.h"
 #include "screens.h"
 #include "types.h"
 
@@ -56,7 +56,6 @@
 #define NB_BUTTONS 4
 
 #define NB_SCREENS 3
-#define NB_OPTIONS 2
 
 // PINs
 //==============================
@@ -87,6 +86,7 @@
 
 #define OPTION_LIFE_LED 0
 #define OPTION_SCREEN_TIMEOUT 1
+#define OPTION_USE_DHT 2
 
 // Tempos
 //==============================
@@ -106,11 +106,11 @@
 //=============================================================
 // CONSTANTS
 // ============================================================
-const uint8_t BUTTONS_PINS[NB_BUTTONS] = {
-    PIN_BTN_LCD_CANCEL, PIN_BTN_LCD_UP, PIN_BTN_LCD_DOWN, PIN_BTN_LCD_ENTER}; // Buttons PINs
-const uint8_t LEDS_PINS[NB_LEDS] = {PIN_LIFE_LED};                            // LEDs PINs
+const uint8_t BUTTONS_PINS[NB_BUTTONS] = {PIN_BTN_LCD_CANCEL, PIN_BTN_LCD_UP, PIN_BTN_LCD_DOWN,
+                                          PIN_BTN_LCD_ENTER}; // Buttons PINs
+const uint8_t LEDS_PINS[NB_LEDS] = {PIN_LIFE_LED};            // LEDs PINs
 
-const uint8_t NB_AVAILABLE_SELECTORS[NB_SCREENS] = {2, 2}; // Order : MAIN / OPTIONS
+const uint8_t NB_AVAILABLE_SELECTORS[NB_SCREENS] = {NB_SCREENS - 1, NB_OPTIONS}; // Order : MAIN / OPTIONS
 
 //=============================================================
 // VARIABLES
@@ -143,10 +143,10 @@ GFX *oled;
 bool is_lcd_on = true;
 bool is_display_update_needed = false;
 
-int selector = 0; // > 0 : list selection | -1 : previous page button in header
+uint8_t selector = 0; // > 0 : list selection
 
-uint8_t previous_screen = SCREEN_OPTIONS;
-uint8_t current_screen = SCREEN_OPTIONS;
+uint8_t current_screen = SCREEN_MAIN;
+uint8_t previous_screen = SCREEN_MAIN;
 
 // DHT
 //==============================
@@ -154,17 +154,24 @@ dht_reading dht;
 
 bool is_dht_acquisition_in_progress;
 
-temperature_t dht_temp = C_ERROR_DHT; // External temperature (sensor)
-humidity_t dht_hum = C_ERROR_DHT;     // External humidity (sensor)
+t_temperature dht_temp = C_ERROR_DHT; // External temperature (sensor)
+t_humidity dht_hum = C_ERROR_DHT;     // External humidity (sensor)
 
 //=============================================================
 // FUNCTIONS
 // ============================================================
 /**
- * @brief Updates the values inside the buttons_states array depending on which buttons are pressed
+ * @brief Updates the values inside the buttons_states array depending on which
+ * buttons are pressed
  */
 void button_acquisition(uint8_t button);
 void buttons_acquisition();
+/**
+ * is_display_update_needed -> true
+ * timer_lcd -> reset
+ * event_button_updated -> false
+ * pressed_button -> NB_BUTTONS;
+ */
 void reset_button_event();
 /**
  * @brief Inverts the state of the LED (ON / OFF)
@@ -222,6 +229,7 @@ void init()
     // Timers
     //==============================
     timer_life_led = timer_lcd = timer_dht = get_absolute_time();
+
     for (int i = 0; i < NB_BUTTONS; i++)
     {
         timer_buttons[i] = timer_life_led;
@@ -229,7 +237,7 @@ void init()
 
     // Options
     //==============================
-    options = (t_options){.names = {"Life LED", "Screen Timeout"}, .values = {false, false}};
+    options = (t_options){.names = {"Life LED", "Screen Timeout", "Use DHT Sensor"}, .values = {false, false, false}};
 }
 
 int main()
@@ -263,7 +271,10 @@ int main()
         }
 
         // DHT
-        temperature_management();
+        if (options.values[OPTION_USE_DHT])
+        {
+            temperature_management();
+        }
 
         // LCD
         display_management();
@@ -359,20 +370,9 @@ void display_management()
         switch (pressed_button)
         {
         case BTN_LCD_CANCEL:
-            if (current_screen != SCREEN_MAIN)
+            if (current_screen == SCREEN_OPTIONS || current_screen == SCREEN_TEMPERATURE)
             {
-                selector = -1;
-            }
-            reset_button_event();
-            break;
-
-        case BTN_LCD_DOWN:
-            if (selector < NB_AVAILABLE_SELECTORS[current_screen] - 1)
-            {
-                selector++;
-            }
-            else
-            {
+                current_screen = SCREEN_MAIN;
                 selector = 0;
             }
             reset_button_event();
@@ -390,15 +390,27 @@ void display_management()
             reset_button_event();
             break;
 
+        case BTN_LCD_DOWN:
+            if (selector < NB_AVAILABLE_SELECTORS[current_screen] - 1)
+            {
+                selector++;
+            }
+            else
+            {
+                selector = 0;
+            }
+            reset_button_event();
+            break;
+
         case BTN_LCD_ENTER:
             if (is_lcd_on)
             {
                 switch (current_screen)
                 {
                 case SCREEN_MAIN:
-                    if (selector >= 0 && selector < NB_SCREENS)
+                    if (selector >= 0 && selector < NB_SCREENS - 1)
                     {
-                        current_screen = selector;
+                        current_screen = selector + 1;
                         selector = 0;
                     }
                     break;
@@ -408,16 +420,9 @@ void display_management()
                     {
                         options.values[selector] = !options.values[selector];
                     }
-                    else if (selector == -1)
-                    {
-                        current_screen = previous_screen;
-                        selector = 0;
-                    }
                     break;
 
-                case SCREEN_TEMPERATURE:
-                    current_screen = previous_screen;
-                    selector = 0;
+                default:
                     break;
                 }
             }
@@ -457,13 +462,19 @@ void display_management()
                 break;
 
             case SCREEN_TEMPERATURE:
-                if (previous_screen == current_screen)
+                if (options.values[OPTION_USE_DHT])
                 {
-                    screen_temp_hum(oled, dht.temp_celsius, dht.humidity, true);
+                    if (previous_screen == current_screen)
+                    {
+                        screen_temp_hum(oled, dht.temp_celsius, dht.humidity, true);
+                    }
+                    else
+                    {
+                        screen_temp_hum(oled, dht.temp_celsius, dht.humidity, false);
+                    }
                 }
                 else
                 {
-                    screen_temp_hum(oled, dht.temp_celsius, dht.humidity, false);
                 }
             }
             is_display_update_needed = false;

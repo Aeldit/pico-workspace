@@ -26,6 +26,7 @@
   "files.associations": {
     "string": "cpp",
     "random": "cpp",
-    "string_view": "cpp"
+    "string_view": "cpp",
+    "climits": "cpp"
   }
 }

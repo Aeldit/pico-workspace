@@ -9,17 +9,19 @@
 //==============================
 #define C_ERROR_DHT -60 // Temperature sensor error value
 
-typedef float temperature_t;
-typedef float humidity_t;
+typedef float t_temperature;
+typedef float t_humidity;
 
 // Options
 //==============================
-typedef char t_options_names[2][18];
+#define NB_OPTIONS 3
+
+typedef char t_options_names[NB_OPTIONS][18];
 
 typedef struct
 {
     t_options_names names;
-    bool values[2];
+    bool values[NB_OPTIONS];
 } t_options;
 
 #endif
