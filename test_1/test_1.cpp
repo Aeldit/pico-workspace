@@ -66,8 +66,8 @@
 
 #define PIN_DHT22 13
 
-#define PIN_DISP_SDA 14
-#define PIN_DISP_SCL 15
+#define PIN_DISP_SCL 14
+#define PIN_DISP_SDA 15
 
 #define PIN_LIFE_LED 25
 
@@ -95,22 +95,27 @@
 #define C_TIME_LIFE_LED_OFF 3 * 1000 * 1000 // 3s : life LED OFF time
 #define C_TIME_LIFE_LED_ON 100 * 1000       // 100ms : life LED ON time
 
-#define C_TIME_LCD_SLEEP 5 * 1000 * 1000 // 5s : duration before putting display asleep
-#define C_TIME_LCD_BUTTONS_FILTER 250000 // 250ms : LEDs filtering time
-#define C_TIME_LCD_SELECTOR 300000       // 300ms : duration before putting display asleep
+#define C_TIME_LCD_SLEEP \
+    5 * 1000 * 1000                          // 5s : duration before putting display asleep
+#define C_TIME_LCD_BUTTONS_FILTER 250 * 1000 // 250ms : LEDs filtering time
+#define C_TIME_LCD_SELECTOR \
+    300 * 1000 // 300ms : duration before putting display asleep
 
-#define C_TIME_DHT_ACQUISITION 3 * 1000 * 1000 // 3s : Duration between 2 temperature acquisition
+#define C_TIME_DHT_ACQUISITION \
+    3 * 1000 * 1000 // 3s : Duration between 2 temperature acquisition
 
 #define C_COEFF_BUTTON_FILTER 4 // Buttons filtering coeff
 
 //=============================================================
 // CONSTANTS
 // ============================================================
-const uint8_t BUTTONS_PINS[NB_BUTTONS] = {PIN_BTN_LCD_CANCEL, PIN_BTN_LCD_UP, PIN_BTN_LCD_DOWN,
+const uint8_t BUTTONS_PINS[NB_BUTTONS] = {PIN_BTN_LCD_CANCEL, PIN_BTN_LCD_UP,
+                                          PIN_BTN_LCD_DOWN,
                                           PIN_BTN_LCD_ENTER}; // Buttons PINs
 const uint8_t LEDS_PINS[NB_LEDS] = {PIN_LIFE_LED};            // LEDs PINs
 
-const uint8_t NB_AVAILABLE_SELECTORS[NB_SCREENS] = {NB_SCREENS - 1, NB_OPTIONS}; // Order : MAIN / OPTIONS
+const uint8_t NB_AVAILABLE_SELECTORS[NB_SCREENS] = {
+    NB_SCREENS - 1, NB_OPTIONS}; // Order : MAIN / OPTIONS
 
 //=============================================================
 // VARIABLES
@@ -119,7 +124,8 @@ bool buttons_states[NB_BUTTONS]{false};          // Buttons order:
 bool previous_buttons_states[NB_BUTTONS]{false}; // Same as above
 bool leds_states[NB_LEDS]{false};                // LEDs order:
 
-uint8_t buttons_counters[NB_BUTTONS]{0}; // Counters used for buttons acquisition
+uint8_t buttons_counters[NB_BUTTONS]{
+    0}; // Counters used for buttons acquisition
 
 uint8_t pressed_button = NB_BUTTONS;
 
@@ -143,7 +149,7 @@ GFX *oled;
 bool is_lcd_on = true;
 bool is_display_update_needed = false;
 
-uint8_t selector = 0; // > 0 : list selection
+uint8_t selector = 0; // list selection
 
 uint8_t current_screen = SCREEN_MAIN;
 uint8_t previous_screen = SCREEN_MAIN;
@@ -237,7 +243,7 @@ void init()
 
     // Options
     //==============================
-    options = (t_options){.names = {"Life LED", "Screen Timeout", "Use DHT Sensor"}, .values = {false, false, false}};
+    options = (t_options){.names = {"Life LED", "Screen Timeout", "Use DHT Sensor"}, .values = {true, true, false}};
 }
 
 int main()

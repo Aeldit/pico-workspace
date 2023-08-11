@@ -1,9 +1,7 @@
 /**
  * @brief Custom types
  */
-
-#ifndef __TEST_TYPES__
-#define __TEST_TYPES__
+#pragma once
 
 // DHT
 //==============================
@@ -23,5 +21,3 @@ typedef struct
     t_options_names names;
     bool values[NB_OPTIONS];
 } t_options;
-
-#endif
