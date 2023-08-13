@@ -95,14 +95,11 @@
 #define C_TIME_LIFE_LED_OFF 3 * 1000 * 1000 // 3s : life LED OFF time
 #define C_TIME_LIFE_LED_ON 100 * 1000       // 100ms : life LED ON time
 
-#define C_TIME_LCD_SLEEP \
-    5 * 1000 * 1000                          // 5s : duration before putting display asleep
+#define C_TIME_LCD_SLEEP 5 * 1000 * 1000     // 5s : duration before putting display asleep
 #define C_TIME_LCD_BUTTONS_FILTER 250 * 1000 // 250ms : LEDs filtering time
-#define C_TIME_LCD_SELECTOR \
-    300 * 1000 // 300ms : duration before putting display asleep
+#define C_TIME_LCD_SELECTOR 300 * 1000       // 300ms : duration before putting display asleep
 
-#define C_TIME_DHT_ACQUISITION \
-    3 * 1000 * 1000 // 3s : Duration between 2 temperature acquisition
+#define C_TIME_DHT_ACQUISITION 3 * 1000 * 1000 // 3s : Duration between 2 temperature acquisition
 
 #define C_COEFF_BUTTON_FILTER 4 // Buttons filtering coeff
 
