@@ -55,8 +55,8 @@
 //==============================
 #define ADC_NUM 0
 #define ADC_VREF 11
-#define ADC_RANGE (1 << 12)
-#define ADC_CONVERT ADC_VREF / (ADC_RANGE - 1)
+// #define ADC_RANGE (1 << 12)
+// #define ADC_CONVERT ADC_VREF / (ADC_RANGE - 1)
 
 // PINS
 //==============================
@@ -75,7 +75,7 @@
 
 // Tempos
 //==============================
-#define C_TIME_SOUND_ACQUISITION 1000 // 1ms : duration before next sound acquisition
+#define C_TIME_SOUND_ACQUISITION 100 // 0.1ms : duration before next sound acquisition
 
 //=============================================================
 // CONSTANTS
@@ -88,11 +88,13 @@ const uint8_t PINS_LED_BAR[NB_BAR_LEDS] = {PIN_BAR_10, PIN_BAR_9, PIN_BAR_8, PIN
 absolute_time_t timer_sound_sensor; // Timer for sound acquisition
 
 uint16_t adc_values[ADC_ARRAY_LENGHT]{0}; // Stores the values read from the adc_read() function
+uint16_t adc_average_values[ADC_ARRAY_LENGHT]{0};
 
 uint8_t current_adc_values_index = 0;
 uint16_t adc_average = 0;
 uint32_t adc_average_sum = 0; // 2**7 * 2**12 = 2**19 => uint16_t bits is too small, so we use uint32_t
-uint16_t adc_max_value = 0;
+
+uint16_t adc_max_value = (1 << 12);
 
 //=============================================================
 // FUNCTIONS
@@ -100,6 +102,7 @@ uint16_t adc_max_value = 0;
 
 void display_sound_intensity();
 void shutdown_led_bars();
+uint8_t adc_convert(uint16_t average);
 
 int main()
 {
@@ -127,8 +130,7 @@ int main()
     {
         if (absolute_time_diff_us(timer_sound_sensor, get_absolute_time()) > C_TIME_SOUND_ACQUISITION)
         {
-            adc_values[current_adc_values_index] = adc_read(); // * ADC_CONVERT; // to test : adc_values[current_adc_values_index++] = adc_read();
-            // printf("%d\n", adc_values[current_adc_values_index]);
+            adc_values[current_adc_values_index] = adc_read(); // to test : adc_values[current_adc_values_index++] = adc_read();
             current_adc_values_index++;
 
             if (current_adc_values_index == ADC_ARRAY_LENGHT)
@@ -146,6 +148,7 @@ int main()
 
                 // Brings the average value back to 0 and calculates the average values from there
                 adc_average_sum = 0;
+                uint16_t tmp_max_value = 0;
 
                 for (int i = 0; i < ADC_ARRAY_LENGHT; i++)
                 {
@@ -157,23 +160,30 @@ int main()
                     {
                         adc_average_sum += adc_average - adc_values[i];
                     }
-                    adc_values[i] = 0;
+
+                    if (adc_values[i] > tmp_max_value)
+                    {
+                        tmp_max_value = adc_values[i];
+                    }
                 }
                 adc_average = adc_average_sum / ADC_ARRAY_LENGHT;
-                printf("%d\n", adc_average);
+                adc_max_value = tmp_max_value;
+
+                uint8_t tmp_adc_converted = adc_convert(adc_average);
+
+                if (tmp_adc_converted > adc_max_value)
+                {
+                    adc_max_value = tmp_adc_converted;
+                }
+                printf("Max value : %d\n", adc_max_value);
+                printf("Average : %d\n", adc_average);
+                printf("%d\n", tmp_adc_converted);
             }
 
-            // display_sound_intensity();
+            display_sound_intensity();
 
             timer_sound_sensor = get_absolute_time();
         }
-
-        /*for (int i = 0; i < NB_BAR_LEDS; i++)
-        {
-            gpio_put(PINS_LED_BAR[i], HIGH);
-            sleep_ms(100);
-            gpio_put(PINS_LED_BAR[i], LOW);
-        }*/
     }
 }
 
@@ -255,7 +265,7 @@ void display_sound_intensity()
             gpio_put(PINS_LED_BAR[i], HIGH);
         }
     }
-    else if (adc_average <= adc_max_value)
+    else if (adc_average < adc_max_value)
     {
         shutdown_led_bars();
 
@@ -264,12 +274,29 @@ void display_sound_intensity()
             gpio_put(PINS_LED_BAR[i], HIGH);
         }
     }
+    else if (adc_average >= adc_max_value)
+    {
+        shutdown_led_bars();
+
+        for (int i = 0; i < 10; i++)
+        {
+            gpio_put(PINS_LED_BAR[i], HIGH);
+        }
+    }
 }
 
 void shutdown_led_bars()
 {
-    for (int i = 0; i < NB_BAR_LEDS; i++)
+    for (int i = NB_BAR_LEDS; i >= 0; i--)
     {
-        gpio_put(PINS_LED_BAR[i], LOW);
+        if (adc_average < i)
+        {
+            gpio_put(PINS_LED_BAR[i], LOW);
+        }
     }
+}
+
+uint8_t adc_convert(uint16_t average)
+{
+    return average * ADC_VREF / (adc_max_value - 1);
 }

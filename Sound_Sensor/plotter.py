@@ -15,7 +15,7 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.lines import Line2D
-
+    
 # disable toolbar
 plt.rcParams['toolbar'] = 'None'
 
