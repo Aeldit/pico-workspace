@@ -12,13 +12,13 @@
                         GP0  | 1   |     |  40 |  VBUS
                         GP1  | 2  #+-----+  39 |  VSYS
                         GND <| 3  GP25 LED  38 |> GND
-       DIGITAL_INPUT    GP2  | 4            37 |  3V3_EN
-        ANALOG_INPUT    GP3  | 5            36 |  3V3_OUT
+               BAR_3    GP2  | 4            37 |  3V3_EN
+                        GP3  | 5            36 |  3V3_OUT
                         GP4  | 6            35 |  ADC_VREF
                         GP5  | 7            34 |  GP28     BAR_1
                         GND <| 8            33 |> GND
                         GP6  | 9            32 |  GP27     BAR_2
-                        GP7  | 10  +-----+  31 |  GP26     BAR_3
+                        GP7  | 10  +-----+  31 |  GP26     ANALOG_INPUT
                         GP8  | 11  |     |  30 |  RUN
                         GP9  | 12  |     |  29 |  GP22     BAR_4
                         GND <| 13  +-----+  28 |> GND
@@ -92,13 +92,14 @@ uint16_t adc_values[ADC_ARRAY_LENGHT]{0}; // Stores the values read from the adc
 uint8_t current_adc_values_index = 0;
 uint16_t adc_average = 0;
 uint32_t adc_average_sum = 0; // 2**7 * 2**12 = 2**19 => uint16_t bits is too small, so we use uint32_t
+uint16_t adc_max_value = 0;
 
 //=============================================================
 // FUNCTIONS
 // ============================================================
 
 void display_sound_intensity();
-void reset_led_bars();
+void shutdown_led_bars();
 
 int main()
 {
@@ -178,39 +179,94 @@ int main()
 
 void display_sound_intensity()
 {
-    if (adc_average > 0 && adc_average < 100)
+    if (adc_average < 0.1 * adc_max_value)
     {
-        reset_led_bars();
+        shutdown_led_bars();
     }
-    else if (adc_average >= 100 && adc_average < 170)
+    else if (adc_average < 0.2 * adc_max_value)
     {
-        reset_led_bars();
-        gpio_put(PINS_LED_BAR[0], HIGH);
+        shutdown_led_bars();
+
+        for (int i = 0; i < 1; i++)
+        {
+            gpio_put(PINS_LED_BAR[i], HIGH);
+        }
     }
-    else if (adc_average >= 170 && adc_average < 172)
+    else if (adc_average < 0.3 * adc_max_value)
     {
-        reset_led_bars();
-        gpio_put(PINS_LED_BAR[0], HIGH);
-        gpio_put(PINS_LED_BAR[1], HIGH);
+        shutdown_led_bars();
+
+        for (int i = 0; i < 2; i++)
+        {
+            gpio_put(PINS_LED_BAR[i], HIGH);
+        }
     }
-    else if (adc_average >= 172 && adc_average < 175)
+    else if (adc_average < 0.4 * adc_max_value)
     {
-        reset_led_bars();
-        gpio_put(PINS_LED_BAR[0], HIGH);
-        gpio_put(PINS_LED_BAR[1], HIGH);
-        gpio_put(PINS_LED_BAR[2], HIGH);
+        shutdown_led_bars();
+
+        for (int i = 0; i < 3; i++)
+        {
+            gpio_put(PINS_LED_BAR[i], HIGH);
+        }
     }
-    else if (adc_average >= 175 && adc_average < 178)
+    else if (adc_average < 0.5 * adc_max_value)
     {
-        reset_led_bars();
-        gpio_put(PINS_LED_BAR[0], HIGH);
-        gpio_put(PINS_LED_BAR[1], HIGH);
-        gpio_put(PINS_LED_BAR[2], HIGH);
-        gpio_put(PINS_LED_BAR[3], HIGH);
+        shutdown_led_bars();
+
+        for (int i = 0; i < 4; i++)
+        {
+            gpio_put(PINS_LED_BAR[i], HIGH);
+        }
+    }
+    else if (adc_average < 0.6 * adc_max_value)
+    {
+        shutdown_led_bars();
+
+        for (int i = 0; i < 5; i++)
+        {
+            gpio_put(PINS_LED_BAR[i], HIGH);
+        }
+    }
+    else if (adc_average < 0.7 * adc_max_value)
+    {
+        shutdown_led_bars();
+
+        for (int i = 0; i < 6; i++)
+        {
+            gpio_put(PINS_LED_BAR[i], HIGH);
+        }
+    }
+    else if (adc_average < 0.8 * adc_max_value)
+    {
+        shutdown_led_bars();
+
+        for (int i = 0; i < 7; i++)
+        {
+            gpio_put(PINS_LED_BAR[i], HIGH);
+        }
+    }
+    else if (adc_average < 0.9 * adc_max_value)
+    {
+        shutdown_led_bars();
+
+        for (int i = 0; i < 8; i++)
+        {
+            gpio_put(PINS_LED_BAR[i], HIGH);
+        }
+    }
+    else if (adc_average <= adc_max_value)
+    {
+        shutdown_led_bars();
+
+        for (int i = 0; i < 9; i++)
+        {
+            gpio_put(PINS_LED_BAR[i], HIGH);
+        }
     }
 }
 
-void reset_led_bars()
+void shutdown_led_bars()
 {
     for (int i = 0; i < NB_BAR_LEDS; i++)
     {
