@@ -1,0 +1,38 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../Users/rapha/Documents/Dev/Docs/Freenove_Super_Starter_Kit_for_Raspberry_Pi_Pico-main/C"
+		},
+		{
+			"path": "../pico-examples"
+		}
+	],
+	"settings": {
+		"cmake.statusbar.advanced": {
+			"debug": {
+				"visibility": "hidden"
+			},
+			"launch": {
+				"visibility": "hidden"
+			},
+			"build": {
+				"visibility": "hidden"
+			},
+			"buildTarget": {
+				"visibility": "hidden"
+			}
+		},
+		"files.associations": {
+			"string": "cpp",
+			"random": "cpp",
+			"string_view": "cpp",
+			"climits": "cpp",
+			"stdio.h": "c",
+			"irq.h": "c",
+			"gpio.h": "c"
+		}
+	}
+}
