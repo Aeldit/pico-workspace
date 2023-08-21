@@ -101,6 +101,9 @@ uint16_t adc_max_value = (1 << 12);
 // ============================================================
 
 void display_sound_intensity();
+/**
+ * @brief Sets the bar LEDs to OFF starting with the higher one
+ */
 void shutdown_led_bars();
 uint8_t adc_convert(uint16_t average);
 
