@@ -25,11 +25,11 @@ class Plotter:
         self.ax = ax
         self.maxt = 250
         self.tdata = [0]
-        self.ydata = [500 / 2]
+        self.ydata = [256 / 2]
         self.line = Line2D(self.tdata, self.ydata)
 
         self.ax.add_line(self.line)
-        self.ax.set_ylim(0, 500)
+        self.ax.set_ylim(0, 256)
         self.ax.set_xlim(0, self.maxt)
 
     def update(self, y):
