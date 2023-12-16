@@ -27,6 +27,7 @@
     "string": "cpp",
     "random": "cpp",
     "string_view": "cpp",
-    "climits": "cpp"
+    "climits": "cpp",
+    "cstdint": "cpp"
   }
 }
