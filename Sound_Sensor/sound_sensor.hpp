@@ -3,7 +3,9 @@
  * @link https://github.com/Aeldit
  */
 
-//===============================================================================
+#ifndef SOUND_SENSOR_H
+#define SOUND_SENSOR_H
+//=============================================================================
 /* Raspberry Pi PICO pinout
 
                         GP     PIN         PIN     GP
@@ -31,21 +33,17 @@
                         GP15 | 20           21 |  GP16     BAR_2
                              +-----------------+
 */
-//===============================================================================
-#ifndef SOUND_SENSOR_H
-#define SOUND_SENSOR_H
-
-//=============================================================
+//=============================================================================
 // INCLUDES
-// ============================================================
+// ============================================================================
 #include <stdio.h>
 
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
 
-//=============================================================
+//=============================================================================
 // DEFINES
-// ============================================================
+// ============================================================================
 #define LOW 0
 #define HIGH 1
 
@@ -79,14 +77,21 @@
 //==============================
 #define C_TIME_SOUND_ACQUISITION 100 // 0.1ms : duration before next sound acquisition
 
-//=============================================================
+// MACROS
+//==============================
+/**
+** \brief Converts the analog input to a digital output
+*/
+#define ADC_CONVERT(average, adc_max_value) (((average) * (ADC_VREF)) / ((adc_max_value)-1)); // / (adc_max_value - 1);
+
+//=============================================================================
 // CONSTANTS
-// ============================================================
+// ============================================================================
 const uint8_t PINS_LED_BAR[NB_BAR_LEDS] = {PIN_BAR_1, PIN_BAR_2, PIN_BAR_3, PIN_BAR_4, PIN_BAR_5, PIN_BAR_6, PIN_BAR_7, PIN_BAR_8, PIN_BAR_9, PIN_BAR_10};
 
-//=============================================================
+//=============================================================================
 // VARIABLES
-// ============================================================
+// ============================================================================
 absolute_time_t timer_sound_sensor; // Timer for sound acquisition
 
 uint16_t adc_values[ADC_ARRAY_LENGHT]{0};         // Stores the values read from the adc_read() function
@@ -94,22 +99,22 @@ uint16_t adc_average_values[ADC_ARRAY_LENGHT]{0}; // Stores the average values r
 
 uint8_t current_adc_values_index = 0;
 uint16_t adc_average = 0;
-uint32_t adc_average_sum = 0; // 2**7 * 2**12 = 2**19 => uint16_t bits is too small, so we use uint32_t
 
 uint16_t adc_max_value = (1 << 8);
 
-//=============================================================
+//=============================================================================
 // FUNCTIONS
-// ============================================================
+// ============================================================================
+void roll_bar_graph();
 
+/**
+** \brief Displays the sound intensity on the bar graph
+*/
 void display_sound_intensity();
+
 /**
-** @brief Sets the bar LEDs to OFF starting with the higher one
-**/
+** \brief Sets the bar LEDs to OFF starting with the higher one
+*/
 void shutdown_led_bars();
-/**
-** @brief Converts the analog input to a digital output
-**/
-uint8_t adc_convert(uint16_t average);
 
 #endif // SOUND_SENSOR_H
