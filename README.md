@@ -1,1 +1,1 @@
-![env](https://img.shields.io/badge/Raspberry%20Pi-A22846?style=for-the-badge&logo=Raspberry%20Pi&logoColor=white)
+![env](https://raw.githubusercontent.com/Aeldit/Aeldit/0292194f1949e6c434a402d1d5b806be15f7333f/github_profile/pico.svg)
