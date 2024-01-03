@@ -27,9 +27,12 @@ int main()
 
     while (true)
     {
-        if (absolute_time_diff_us(timer_sound_sensor, get_absolute_time()) > C_TIME_SOUND_ACQUISITION)
+        if (absolute_time_diff_us(timer_sound_sensor, get_absolute_time())
+            > C_TIME_SOUND_ACQUISITION)
         {
-            adc_values[current_adc_values_index++] = adc_read(); // to test : adc_values[current_adc_values_index++] = adc_read();
+            // to test :
+            // adc_values[current_adc_values_index++] = adc_read();
+            adc_values[current_adc_values_index++] = adc_read();
 
             // If the array has been filled
             if (current_adc_values_index == ADC_ARRAY_LENGHT)
@@ -37,7 +40,9 @@ int main()
                 current_adc_values_index = 0;
 
                 // Calculs the average value of the signal
-                uint32_t adc_average_sum = 0; // 2**7 * 2**12 = 2**19 => uint16_t bits is too small, so we use uint32_t
+                // 2**7 * 2**12 = 2**19 => uint16_t bits is too small, so we use
+                // uint32_t
+                uint32_t adc_average_sum = 0;
 
                 for (int i = 0; i < ADC_ARRAY_LENGHT; i++)
                 {
@@ -45,7 +50,8 @@ int main()
                 }
                 adc_average = adc_average_sum / ADC_ARRAY_LENGHT;
 
-                // Brings the average value back to 0 and calculates the average values from there
+                // Brings the average value back to 0 and calculates the average
+                // values from there
                 adc_average_sum = 0;
                 uint16_t tmp_max_value = 0;
 
@@ -68,7 +74,8 @@ int main()
                 adc_average = adc_average_sum / ADC_ARRAY_LENGHT;
                 adc_max_value = tmp_max_value;
 
-                uint8_t tmp_adc_converted = ADC_CONVERT(adc_average, adc_max_value);
+                uint8_t tmp_adc_converted =
+                    ADC_CONVERT(adc_average, adc_max_value);
 
                 if (tmp_adc_converted > adc_max_value)
                 {

@@ -38,8 +38,8 @@
 // ============================================================================
 #include <stdio.h>
 
-#include "pico/stdlib.h"
 #include "hardware/adc.h"
+#include "pico/stdlib.h"
 
 //=============================================================================
 // DEFINES
@@ -75,27 +75,36 @@
 
 // Tempos
 //==============================
-#define C_TIME_SOUND_ACQUISITION 100 // 0.1ms : duration before next sound acquisition
+#define C_TIME_SOUND_ACQUISITION                                               \
+    100 // 0.1ms : duration before next sound acquisition
 
 // MACROS
 //==============================
 /**
 ** \brief Converts the analog input to a digital output
 */
-#define ADC_CONVERT(average, adc_max_value) (((average) * (ADC_VREF)) / ((adc_max_value)-1)); // / (adc_max_value - 1);
+#define ADC_CONVERT(average, adc_max_value)                                    \
+    (((average) * (ADC_VREF)) / ((adc_max_value)-1)); // / (adc_max_value - 1);
 
 //=============================================================================
 // CONSTANTS
-// ============================================================================
-const uint8_t PINS_LED_BAR[NB_BAR_LEDS] = {PIN_BAR_1, PIN_BAR_2, PIN_BAR_3, PIN_BAR_4, PIN_BAR_5, PIN_BAR_6, PIN_BAR_7, PIN_BAR_8, PIN_BAR_9, PIN_BAR_10};
+//=============================================================================
+const uint8_t PINS_LED_BAR[NB_BAR_LEDS] = { PIN_BAR_1, PIN_BAR_2, PIN_BAR_3,
+                                            PIN_BAR_4, PIN_BAR_5, PIN_BAR_6,
+                                            PIN_BAR_7, PIN_BAR_8, PIN_BAR_9,
+                                            PIN_BAR_10 };
 
 //=============================================================================
 // VARIABLES
 // ============================================================================
 absolute_time_t timer_sound_sensor; // Timer for sound acquisition
 
-uint16_t adc_values[ADC_ARRAY_LENGHT]{0};         // Stores the values read from the adc_read() function
-uint16_t adc_average_values[ADC_ARRAY_LENGHT]{0}; // Stores the average values read from the adc_read() function
+uint16_t adc_values[ADC_ARRAY_LENGHT]{
+    0
+}; // Stores the values read from the adc_read() function
+uint16_t adc_average_values[ADC_ARRAY_LENGHT]{
+    0
+}; // Stores the average values read from the adc_read() function
 
 uint8_t current_adc_values_index = 0;
 uint16_t adc_average = 0;
@@ -104,7 +113,7 @@ uint16_t adc_max_value = (1 << 8);
 
 //=============================================================================
 // FUNCTIONS
-// ============================================================================
+//=============================================================================
 /**
 ** \brief Displays a roll effect on the bar graph
 */
