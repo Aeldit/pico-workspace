@@ -10,7 +10,7 @@
 #define SSD1306_SETHIGHCOLUMN 0x10
 #define SSD1306_MEMORYMODE 0x20
 #define SSD1306_COLUMNADDR 0x21
-#define SSD1306_PAGEADDR   0x22
+#define SSD1306_PAGEADDR 0x22
 #define SSD1306_RIGHT_HORIZONTAL_SCROLL 0x26
 #define SSD1306_LEFT_HORIZONTAL_SCROLL 0x27
 #define SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL 0x29
@@ -52,46 +52,47 @@
 #define SSD1306_SCROLLSPEED_25 0x06
 #define SSD1306_SCROLLSPEED_2 0x07
 
-
-enum class colors {
+enum class colors
+{
 	BLACK,
 	WHITE,
 	INVERSE
 };
 
-enum class size {
+enum class size
+{
 	W128xH64,
 	W128xH32
 };
 
+class SSD1306
+{
+protected:
+	uint16_t DevAddr;
+	i2c_inst_t *i2c;
+	uint8_t width;
+	uint8_t height;
+	size Size;
 
-class SSD1306 {
-	protected:
-        uint16_t DevAddr;
-		i2c_inst_t * i2c;
-		uint8_t width;
-		uint8_t height;
-		size Size;
-		
-		unsigned char * buffer;
+	unsigned char *buffer;
 
-		void sendData(uint8_t* buffer, size_t buff_size);
-		void sendCommand(uint8_t command);
+	void sendData(uint8_t *buffer, size_t buff_size);
+	void sendCommand(uint8_t command);
 
-	public:
-		SSD1306(uint16_t const DevAddr, size Size, i2c_inst_t * i2c);
-		~SSD1306();
+public:
+	SSD1306(uint16_t const DevAddr, size Size, i2c_inst_t *i2c);
+	~SSD1306();
 
-		void displayON(uint8_t On);
-		void invertColors(uint8_t Invert);
-		void rotateDisplay(uint8_t Rotate);
-		void setContrast(uint8_t Contrast);
-		void drawPixel(int16_t x, int16_t y, colors Color = colors::WHITE);
-		void clear(colors Color = colors::BLACK);
-		void display(unsigned char *data = nullptr);
-		void horizontal_scroll(bool right, uint8_t start, uint8_t stop, uint8_t speed);
-		void vertical_horizontal_scroll(bool right, uint8_t start, uint8_t stop, uint8_t speed, uint8_t vert);
-		void stop_scroll();
-		uint8_t getHeight();
-		uint8_t getWidth();
+	void displayON(uint8_t On);
+	void invertColors(uint8_t Invert);
+	void rotateDisplay(uint8_t Rotate);
+	void setContrast(uint8_t Contrast);
+	void drawPixel(int16_t x, int16_t y, colors Color = colors::WHITE);
+	void clear(colors Color = colors::BLACK);
+	void display(unsigned char *data = nullptr);
+	void horizontal_scroll(bool right, uint8_t start, uint8_t stop, uint8_t speed);
+	void vertical_horizontal_scroll(bool right, uint8_t start, uint8_t stop, uint8_t speed, uint8_t vert);
+	void stop_scroll();
+	uint8_t getHeight();
+	uint8_t getWidth();
 };

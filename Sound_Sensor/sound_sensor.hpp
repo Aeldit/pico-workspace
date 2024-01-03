@@ -73,38 +73,42 @@
 #define PIN_BAR_9 27
 #define PIN_BAR_10 28
 
+#define PIN_DISP_SCL 14
+#define PIN_DISP_SDA 15
+
 // Tempos
 //==============================
-#define C_TIME_SOUND_ACQUISITION                                               \
-    100 // 0.1ms : duration before next sound acquisition
+// 0.1ms : duration before next sound acquisition
+#define C_TIME_SOUND_ACQUISITION 100
+// 100ms
+#define C_TIME_LCD_REFRESH 100000
 
 // MACROS
 //==============================
 /**
 ** \brief Converts the analog input to a digital output
 */
-#define ADC_CONVERT(average, adc_max_value)                                    \
+#define ADC_CONVERT(average, adc_max_value) \
     (((average) * (ADC_VREF)) / ((adc_max_value)-1)); // / (adc_max_value - 1);
 
 //=============================================================================
 // CONSTANTS
 //=============================================================================
-const uint8_t PINS_LED_BAR[NB_BAR_LEDS] = { PIN_BAR_1, PIN_BAR_2, PIN_BAR_3,
-                                            PIN_BAR_4, PIN_BAR_5, PIN_BAR_6,
-                                            PIN_BAR_7, PIN_BAR_8, PIN_BAR_9,
-                                            PIN_BAR_10 };
+const uint8_t PINS_LED_BAR[NB_BAR_LEDS] = {PIN_BAR_1, PIN_BAR_2, PIN_BAR_3,
+                                           PIN_BAR_4, PIN_BAR_5, PIN_BAR_6,
+                                           PIN_BAR_7, PIN_BAR_8, PIN_BAR_9,
+                                           PIN_BAR_10};
 
 //=============================================================================
 // VARIABLES
 // ============================================================================
 absolute_time_t timer_sound_sensor; // Timer for sound acquisition
+absolute_time_t timer_lcd;
 
-uint16_t adc_values[ADC_ARRAY_LENGHT]{
-    0
-}; // Stores the values read from the adc_read() function
-uint16_t adc_average_values[ADC_ARRAY_LENGHT]{
-    0
-}; // Stores the average values read from the adc_read() function
+// Stores the values read from the adc_read() function
+uint16_t adc_values[ADC_ARRAY_LENGHT]{0};
+// Stores the average values read from the adc_read() function
+uint16_t adc_average_values[ADC_ARRAY_LENGHT]{0};
 
 uint8_t current_adc_values_index = 0;
 uint16_t adc_average = 0;
