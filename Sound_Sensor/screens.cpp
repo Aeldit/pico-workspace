@@ -40,22 +40,30 @@ void screen_main_menu(GFX *display, uint8_t only_update, uint16_t frequence)
     display->display();
 }
 
+void display_graph_screen(GFX *display, uint16_t prev_values[63])
+{
+    char Text[MAX_CHAR_PER_LINE];
+    display->clear();
+
+    // Screen header
+    sprintf(Text, "Graph");
+    draw_centered_header(display, Text);
+
+    display->display();
+}
+
 // Utils
 //=======================================================
-
-void draw_centered_header(GFX *display, char *text)
+/**
+** \brief Draws a white line of width 128 and of height 10 at the top of the
+**        screen + writes the given text on it (centered)
+*/
+void draw_centered_header(GFX *display, char text[MAX_CHAR_PER_LINE])
 {
-    uint8_t len = strlen(text);
+    size_t len = strlen(text);
     display->drawFillRectangle(0, 0, 128, 10, colors::WHITE);
 
-    if (len % 2 == 0)
-    {
-        display->drawString(64 - (len / 2) * 5 - len + 3, 1, text, colors::BLACK);
-    }
-    else
-    {
-        display->drawString(64 - (len / 2) * 5 - len + 6, 1, text, colors::BLACK);
-    }
+    display->drawString(64 - (len * 5 + len - 1) / 2, 1, text, colors::BLACK);
 }
 
 void draw_text_reverse(GFX *display, int x, int y, char *text)

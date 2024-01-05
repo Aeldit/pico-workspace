@@ -16,8 +16,6 @@ endif()
 # Initialize the SDK
 pico_sdk_init()
 
-# add_subdirectory(test_1)
-# add_subdirectory(test_HC_SR04)
 add_subdirectory(Sound_Sensor)
 
 add_compile_options(-Wall

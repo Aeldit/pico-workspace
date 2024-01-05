@@ -44,6 +44,9 @@ int main()
     uint8_t display_update_needed = 1;
     uint16_t frequence_to_display;
 
+    uint16_t prev_frequences[63] = {0};
+    uint8_t prev_frequences_idx = 0;
+
     while (1)
     {
         if (absolute_time_diff_us(timer_sound_sensor, get_absolute_time()) > C_TIME_SOUND_ACQUISITION)
@@ -91,7 +94,12 @@ int main()
                 }
                 adc_average = adc_average_sum / ADC_ARRAY_LENGHT;
                 adc_max_value = tmp_max_value;
-                frequence_to_display = adc_average;
+
+                if (prev_frequences_idx == 63)
+                {
+                    prev_frequences_idx = 0;
+                }
+                prev_frequences[prev_frequences_idx++] = adc_average;
 
                 uint8_t tmp_adc_converted =
                     ADC_CONVERT(adc_average, adc_max_value);
@@ -110,7 +118,7 @@ int main()
 
         if (display_update_needed && absolute_time_diff_us(timer_lcd, get_absolute_time()) > C_TIME_LCD_REFRESH)
         {
-            screen_main_menu(oled, 1, frequence_to_display);
+            display_graph_screen(oled, prev_frequences);
 
             display_update_needed = 0;
             timer_lcd = get_absolute_time();
