@@ -44,15 +44,13 @@ int main()
     uint8_t display_update_needed = 1;
     uint16_t frequence_to_display;
 
-    uint16_t prev_frequences[63] = {0};
+    uint16_t prev_frequences[PREV_VALUES_MAX_NB] = {0};
     uint8_t prev_frequences_idx = 0;
 
     while (1)
     {
         if (absolute_time_diff_us(timer_sound_sensor, get_absolute_time()) > C_TIME_SOUND_ACQUISITION)
         {
-            // to test :
-            // adc_values[current_adc_values_index++] = adc_read();
             adc_values[current_adc_values_index++] = adc_read();
 
             // If the array has been filled
@@ -94,12 +92,21 @@ int main()
                 }
                 adc_average = adc_average_sum / ADC_ARRAY_LENGHT;
                 adc_max_value = tmp_max_value;
+                frequence_to_display = adc_average;
 
-                if (prev_frequences_idx == 63)
+                // Used to display the graph on the LCD
+                if (prev_frequences_idx < PREV_VALUES_MAX_NB)
                 {
-                    prev_frequences_idx = 0;
+                    prev_frequences[prev_frequences_idx++] = adc_average;
                 }
-                prev_frequences[prev_frequences_idx++] = adc_average;
+                else
+                {
+                    for (int i = 0; i < PREV_VALUES_MAX_NB - 2; i++)
+                    {
+                        prev_frequences[i] = prev_frequences[i + 1];
+                    }
+                    prev_frequences[PREV_VALUES_MAX_NB - 1] = adc_average;
+                }
 
                 uint8_t tmp_adc_converted =
                     ADC_CONVERT(adc_average, adc_max_value);
