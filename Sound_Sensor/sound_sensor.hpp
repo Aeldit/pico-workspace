@@ -87,7 +87,7 @@
 ** \brief Converts the analog input to a digital output
 */
 #define ADC_CONVERT(average, adc_max_value) \
-    (((average) * (ADC_VREF)) / ((adc_max_value)-1)); // / (adc_max_value - 1);
+    (((average) * (ADC_VREF)) / ((adc_max_value)-1));
 
 //=============================================================================
 // CONSTANTS
