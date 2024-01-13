@@ -1,2 +1,4 @@
+.vscode/
 build/
+libs/
 pico_gpio.png
