@@ -3,3 +3,4 @@ build/
 libs/
 pico_gpio.png
 *.fzz
+Sound_Sensor/plotter.py
