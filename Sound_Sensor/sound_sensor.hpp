@@ -51,11 +51,13 @@
 
 #define ADC_ARRAY_LENGHT 100
 
+//==============================
 // ADC
 //==============================
 #define ADC_NUM 0
 #define ADC_VREF 11
 
+//==============================
 // PINS
 //==============================
 #define PIN_ANALOG_INPUT 26
@@ -74,6 +76,7 @@
 #define PIN_LCD_SCL 14
 #define PIN_LCD_SDA 15
 
+//==============================
 // Tempos
 //==============================
 // 0.1ms : duration before next sound acquisition
@@ -81,6 +84,7 @@
 // 100ms
 #define TIMER_LCD_REFRESH 100000
 
+//==============================
 // MACROS
 //==============================
 /**

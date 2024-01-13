@@ -3,6 +3,9 @@
  * \link https://github.com/Aeldit
  */
 
+//=============================================================================
+// INCLUDES
+// ============================================================================
 #include "hardware/i2c.h"
 
 #include "sound_sensor.hpp"
@@ -10,6 +13,9 @@
 #include "logo.hpp"
 #include "screens.h"
 
+//=============================================================================
+// FUNCTIONS
+//=============================================================================
 int main()
 {
     stdio_init_all();
@@ -24,14 +30,14 @@ int main()
     //==============================
     // LCD
     //==============================
-    i2c_init(i2c1, 400000);                        // Initialize I2C on i2c0 port with 400kHz
+    i2c_init(i2c1, 400000);                        // Initializes I2C on i2c0 port with 400kHz
     gpio_set_function(PIN_LCD_SDA, GPIO_FUNC_I2C); // Use PIN_DISP_SDA as I2C
     gpio_set_function(PIN_LCD_SCL, GPIO_FUNC_I2C); // Use PIN_DISP_SCL as I2C
     gpio_pull_up(PIN_LCD_SDA);                     // Pull up PIN_DISP_SDA
     gpio_pull_up(PIN_LCD_SCL);                     // Pull up PIN_DISP_SCL
 
-    GFX *oled = new GFX(0x3C, size::W128xH64, i2c1); // Declare oled instance
-    oled->display(logo);
+    GFX *oled = new GFX(0x3C, size::W128xH64, i2c1); // Declares oled instance
+    oled->display(logo);                             // Displays the PICO log while loading
 
     //==============================
     // Bar LEDs
@@ -154,6 +160,7 @@ void roll_bar_graph()
 void display_sound_intensity()
 {
     shutdown_led_bars();
+
     for (int i = 0; i < adc_average; i++)
     {
         gpio_put(PINS_LED_BAR[i], HIGH);
