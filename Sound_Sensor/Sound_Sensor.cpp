@@ -1,6 +1,6 @@
 /**
- * @author Aeldit
- * @link https://github.com/Aeldit
+ * \author Aeldit
+ * \link https://github.com/Aeldit
  */
 
 #include "hardware/i2c.h"
@@ -14,11 +14,14 @@ int main()
 {
     stdio_init_all();
 
+    //==============================
     // ADC
+    //==============================
     adc_init();
     adc_gpio_init(PIN_ANALOG_INPUT);
     adc_select_input(ADC_NUM);
 
+    //==============================
     // LCD
     //==============================
     i2c_init(i2c1, 400000);                        // Initialize I2C on i2c0 port with 400kHz
@@ -30,7 +33,9 @@ int main()
     GFX *oled = new GFX(0x3C, size::W128xH64, i2c1); // Declare oled instance
     oled->display(logo);
 
+    //==============================
     // Bar LEDs
+    //==============================
     for (int i = 0; i < NB_BAR_LEDS; i++)
     {
         gpio_init(PINS_LED_BAR[i]);
@@ -39,6 +44,9 @@ int main()
 
     roll_bar_graph();
 
+    //==============================
+    // Misc
+    //==============================
     timer_sound_sensor = timer_lcd = get_absolute_time();
     screen_main_menu(oled, 0, adc_average);
     uint8_t display_update_needed = 1;
@@ -60,8 +68,7 @@ int main()
                 current_adc_values_index = 0;
 
                 // Calculs the average value of the signal
-                // 2**7 * 2**12 = 2**19 => uint16_t bits is too small, so we use
-                // uint32_t
+                // 2^7 * 2^12 = 2^19 => uint16_t bits is too small, so we use uint32_t
                 uint32_t adc_average_sum = 0;
 
                 for (int i = 0; i < ADC_ARRAY_LENGHT; i++)
