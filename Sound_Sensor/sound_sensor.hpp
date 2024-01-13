@@ -1,6 +1,6 @@
 /**
- * @author Aeldit
- * @link https://github.com/Aeldit
+ * \author Aeldit
+ * \link https://github.com/Aeldit
  */
 
 #ifndef SOUND_SENSOR_H
@@ -29,8 +29,8 @@
                         GP12 | 16           25 |  GP19     BAR_5
                         GP13 | 17           24 |  GP18     BAR_6
                         GND <| 18           23 |> GND
-                        GP14 | 19           22 |  GP17     BAR_3
-                        GP15 | 20           21 |  GP16     BAR_2
+             LCD_SCL    GP14 | 19           22 |  GP17     BAR_3
+             LCD_SDA    GP15 | 20           21 |  GP16     BAR_2
                              +-----------------+
 */
 //=============================================================================
@@ -55,8 +55,6 @@
 //==============================
 #define ADC_NUM 0
 #define ADC_VREF 11
-// #define ADC_RANGE (1 << 12)
-// #define ADC_CONVERT ADC_VREF / (ADC_RANGE - 1)
 
 // PINS
 //==============================
@@ -73,15 +71,15 @@
 #define PIN_BAR_9 27
 #define PIN_BAR_10 28
 
-#define PIN_DISP_SCL 14
-#define PIN_DISP_SDA 15
+#define PIN_LCD_SCL 14
+#define PIN_LCD_SDA 15
 
 // Tempos
 //==============================
 // 0.1ms : duration before next sound acquisition
-#define C_TIME_SOUND_ACQUISITION 100
+#define TIMER_SOUND_ACQUISITION 100
 // 100ms
-#define C_TIME_LCD_REFRESH 100000
+#define TIMER_LCD_REFRESH 100000
 
 // MACROS
 //==============================

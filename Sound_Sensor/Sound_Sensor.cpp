@@ -21,11 +21,11 @@ int main()
 
     // LCD
     //==============================
-    i2c_init(i2c1, 400000);                         // Initialize I2C on i2c0 port with 400kHz
-    gpio_set_function(PIN_DISP_SDA, GPIO_FUNC_I2C); // Use PIN_DISP_SDA as I2C
-    gpio_set_function(PIN_DISP_SCL, GPIO_FUNC_I2C); // Use PIN_DISP_SCL as I2C
-    gpio_pull_up(PIN_DISP_SDA);                     // Pull up PIN_DISP_SDA
-    gpio_pull_up(PIN_DISP_SCL);                     // Pull up PIN_DISP_SCL
+    i2c_init(i2c1, 400000);                        // Initialize I2C on i2c0 port with 400kHz
+    gpio_set_function(PIN_LCD_SDA, GPIO_FUNC_I2C); // Use PIN_DISP_SDA as I2C
+    gpio_set_function(PIN_LCD_SCL, GPIO_FUNC_I2C); // Use PIN_DISP_SCL as I2C
+    gpio_pull_up(PIN_LCD_SDA);                     // Pull up PIN_DISP_SDA
+    gpio_pull_up(PIN_LCD_SCL);                     // Pull up PIN_DISP_SCL
 
     GFX *oled = new GFX(0x3C, size::W128xH64, i2c1); // Declare oled instance
     oled->display(logo);
@@ -49,7 +49,8 @@ int main()
 
     while (1)
     {
-        if (absolute_time_diff_us(timer_sound_sensor, get_absolute_time()) > C_TIME_SOUND_ACQUISITION)
+        // Timer for the sound acquisition
+        if (absolute_time_diff_us(timer_sound_sensor, get_absolute_time()) > TIMER_SOUND_ACQUISITION)
         {
             adc_values[current_adc_values_index++] = adc_read();
 
@@ -108,8 +109,7 @@ int main()
                     prev_frequences[PREV_VALUES_MAX_NB - 1] = adc_average;
                 }
 
-                uint8_t tmp_adc_converted =
-                    ADC_CONVERT(adc_average, adc_max_value);
+                uint8_t tmp_adc_converted = ADC_CONVERT(adc_average, adc_max_value);
 
                 if (tmp_adc_converted > adc_max_value)
                 {
@@ -123,7 +123,8 @@ int main()
             display_update_needed = 1;
         }
 
-        if (display_update_needed && absolute_time_diff_us(timer_lcd, get_absolute_time()) > C_TIME_LCD_REFRESH)
+        // Timer for the LCD update
+        if (display_update_needed && absolute_time_diff_us(timer_lcd, get_absolute_time()) > TIMER_LCD_REFRESH)
         {
             display_graph_screen(oled, prev_frequences);
 
